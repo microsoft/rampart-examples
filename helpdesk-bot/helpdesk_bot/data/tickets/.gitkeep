@@ -1,0 +1,4 @@
+# Keep this directory in version control even when no benign tickets are
+# checked in. Poisoned tickets injected by LocalTicketSurface during a
+# test run are written here and removed on cleanup; they should never be
+# committed (see the per-demo .gitignore).

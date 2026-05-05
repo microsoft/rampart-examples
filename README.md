@@ -1,14 +1,58 @@
-# Project
+# RAMPART Examples
 
-> This repo has been populated by an initial template to help get you started. Please
-> make sure to update the content to build a great experience for community-building.
+Runnable showcases of [RAMPART](https://github.com/microsoft/RAMPART): the pytest-native
+safety and security testing framework for agentic AI applications.
 
-As the maintainer of this project, please make a few updates:
+Each subdirectory is a self-contained demo. Pick one, follow its
+`README.md`, and you'll have a red -> fix -> green walkthrough running in
+minutes. Each demo declares its own dependencies, manifest, surface,
+adapter, and tests; nothing here at the repo root is required at runtime.
 
-- Improving this README.MD file to provide a great experience
-- Updating SUPPORT.MD with content about this project's support experience
-- Understanding the security reporting process in SECURITY.MD
-- Remove this section from the README
+## Demos
+
+| Demo | What it shows |
+|---|---|
+| [helpdesk-bot](helpdesk-bot/README.md) | Indirect prompt injection (XPIA) via a poisoned support ticket. Single-`git apply` red -> green walkthrough. |
+
+## Repository layout
+
+```
+rampart-examples/
+├── README.md                # this file
+├── pyproject.toml           # shared tooling config (ruff, ty, smoke-test pytest)
+├── .pre-commit-config.yaml  # shared lint/format hooks (SHA-pinned)
+├── .github/workflows/       # public CI: lint, smoke, patch round-trip
+├── .azure-pipelines/        # internal CI: live integration tests against real models
+├── tests/                   # maintainer smoke tests (no LLM, no API keys)
+└── <demo-name>/             # one folder per demo, fully self-contained
+    ├── README.md            # walkthrough for THIS demo (the canonical artifact)
+    ├── pyproject.toml       # demo's own dependencies and pytest config
+    ├── <package_name>/      # the demo's installable Python package (flat layout)
+    ├── tests/               # demo-local pytest fixtures + RAMPART tests
+    └── mitigation.patch     # the unified-diff fix
+```
+
+## For maintainers
+
+The `tests/` directory contains a fast smoke suite that exercises every
+demo's deterministic pieces (imports, manifests, surface lifecycle,
+predicates, mitigation-patch applicability) without making any LLM
+call. The repo is a uv workspace; `uv sync` installs every demo plus
+the maintainer toolchain.
+
+```bash
+uv sync
+uv run pytest
+```
+
+Demo users running `pytest` from inside a demo folder never see this
+suite; each demo's own `pyproject.toml` scopes pytest to its own
+directory.
+
+Public CI (lint + smoke + patch round-trip) runs in GitHub Actions on
+every PR. Live integration tests against real OpenAI / Azure OpenAI
+endpoints run in an internal Azure DevOps pipeline; see
+[`.azure-pipelines/README.md`](.azure-pipelines/README.md).
 
 ## Contributing
 

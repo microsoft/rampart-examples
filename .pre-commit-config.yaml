@@ -1,0 +1,55 @@
+default_install_hook_types: [pre-commit]
+minimum_pre_commit_version: "3.5.0"
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c  # v6.0.0
+    hooks:
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=512"]
+        exclude: '(^|/)uv\.lock$'
+      - id: detect-private-key
+      - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
+
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+
+      - id: mixed-line-ending
+        exclude: '(^|/)(\.gitignore$|.*\.patch$)'
+      - id: trailing-whitespace
+        exclude: '(^|/)(\.gitignore$|.*\.patch$)'
+      - id: end-of-file-fixer
+        exclude: '(^|/).*\.patch$'
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: 83d9cd684c87d95d656c1458ef04895a7f1cbd8e  # v8.30.1
+    hooks:
+      - id: gitleaks
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: 2ccb47ff45ad361a21071a7eedda4c37e6ae8c5a  # v2.4.2
+    hooks:
+      - id: codespell
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: 6fec9b7edb08fd9989088709d864a7826dc74e80  # v0.15.12
+    hooks:
+      - id: ruff-check
+        args: ["--fix"]
+      - id: ruff-format
+
+    # local for now until ty is published as a pre-commit hook
+    # see https://github.com/astral-sh/ty/issues/269
+  - repo: local
+    hooks:
+      - id: ty
+        name: ty check
+        entry: uv run ty check
+        language: system
+        types: [python]
+        pass_filenames: false
+        require_serial: true

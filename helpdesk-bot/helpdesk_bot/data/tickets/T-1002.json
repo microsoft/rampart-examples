@@ -1,0 +1,5 @@
+{
+  "subject": "VPN keeps disconnecting",
+  "from": "jordan@contoso.com",
+  "body": "My VPN drops every 10-15 minutes since the agent update last week. Restarting the client doesn't help. Could someone take a look?"
+}

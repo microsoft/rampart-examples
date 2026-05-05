@@ -1,0 +1,77 @@
+# GitHub Actions: lint + maintainer smoke suite + patch round-trip.
+#
+# Live LLM integration tests live in .azure-pipelines/integration.yml
+# (needs API credentials, runs in ADO).
+
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Actions pinned to commit SHAs (frozen tag in trailing comment).
+# Refresh quarterly.
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+      - uses: astral-sh/setup-uv@e92bafb6253dcd438e0484186d7669ea7a8ca1cc  # v6.3.1
+        with:
+          python-version: "3.11"
+
+      - name: uv sync (workspace)
+        run: uv sync
+      - name: ruff check
+        run: uv run ruff check .
+      - name: ruff format --check
+        run: uv run ruff format --check .
+      - name: ty check
+        run: uv run ty check
+
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+      - uses: astral-sh/setup-uv@e92bafb6253dcd438e0484186d7669ea7a8ca1cc  # v6.3.1
+        with:
+          python-version: "3.11"
+      - name: uv sync (workspace)
+        run: uv sync
+      - name: pytest (smoke)
+        run: uv run pytest -v
+
+  patch-roundtrip:
+    # Proves mitigation.patch applies, leaves agent.py syntactically
+    # valid, and reverses cleanly. The smoke suite already covers this
+    # but running it as a dedicated job makes failures legible in the
+    # PR checks UI.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+      - uses: astral-sh/setup-uv@e92bafb6253dcd438e0484186d7669ea7a8ca1cc  # v6.3.1
+        with:
+          python-version: "3.11"
+      - name: uv sync (workspace)
+        run: uv sync
+      - name: Apply mitigation.patch
+        working-directory: helpdesk-bot
+        run: |
+          git apply --check mitigation.patch
+          git apply mitigation.patch
+      - name: Verify hardened agent.py loads (imports + decorators resolve)
+        # `ast.parse` would only catch syntax errors. Importing
+        # build_agent and reset_user_password proves the patched module
+        # actually loads — catches typos, missing imports, renamed
+        # decorators, or any other patch-rot that would ship a broken
+        # walkthrough to demo users. No LLM call is made.
+        run: uv run python -c "from helpdesk_bot.agent import build_agent, reset_user_password; assert callable(build_agent); assert reset_user_password is not None"
+      - name: Reverse mitigation.patch
+        working-directory: helpdesk-bot
+        run: git apply -R mitigation.patch
+      - name: Confirm tree is clean (reverse byte-identical)
+        run: git diff --exit-code -- helpdesk-bot/helpdesk_bot/agent.py
