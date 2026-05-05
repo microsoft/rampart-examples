@@ -24,6 +24,10 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Configure SSH for private RAMPART clone
+        env:
+          RAMPART_REPO_READER: ${{ secrets.RAMPART_REPO_READER }}
+        run: ./scripts/ci/setup-rampart-ssh.sh
       - name: uv sync (workspace)
         run: uv sync
       - name: ruff check
@@ -40,6 +44,10 @@ jobs:
       - uses: astral-sh/setup-uv@e92bafb6253dcd438e0484186d7669ea7a8ca1cc  # v6.3.1
         with:
           python-version: "3.11"
+      - name: Configure SSH for private RAMPART clone
+        env:
+          RAMPART_REPO_READER: ${{ secrets.RAMPART_REPO_READER }}
+        run: ./scripts/ci/setup-rampart-ssh.sh
       - name: uv sync (workspace)
         run: uv sync
       - name: pytest (smoke)
@@ -56,6 +64,10 @@ jobs:
       - uses: astral-sh/setup-uv@e92bafb6253dcd438e0484186d7669ea7a8ca1cc  # v6.3.1
         with:
           python-version: "3.11"
+      - name: Configure SSH for private RAMPART clone
+        env:
+          RAMPART_REPO_READER: ${{ secrets.RAMPART_REPO_READER }}
+        run: ./scripts/ci/setup-rampart-ssh.sh
       - name: uv sync (workspace)
         run: uv sync
       - name: Apply mitigation.patch
