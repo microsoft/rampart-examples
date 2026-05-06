@@ -8,7 +8,6 @@ version = "0.1.0"
 description = "RAMPART showcase: indirect prompt injection (XPIA) against an Agent-Framework helpdesk triage bot."
 readme = "README.md"
 license = { text = "MIT" }
-# RAMPART's transitive deps (notably pyrit) don't yet ship 3.14 wheels.
 requires-python = ">=3.11,<3.14"
 authors = [
     { name = "Microsoft AI Red Team", email = "airedteam@microsoft.com" },

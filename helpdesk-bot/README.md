@@ -60,8 +60,7 @@ The trust boundary is named declaratively in
 
 ## ✅ Prerequisites
 
-- Python 3.11, 3.12, or 3.13. (RAMPART's transitive deps don't yet
-  ship 3.14 wheels.)
+- Python 3.11, 3.12, or 3.13.
 - One provider's credentials: an OpenAI API key, an Azure OpenAI
   endpoint + key, or an Azure account that `DefaultAzureCredential`
   can find (Entra ID).
@@ -290,8 +289,6 @@ analysis or pipeline integration.
 ---
 
 ## 📚 What this proves about RAMPART
-
-Four lessons, one per minute of demo:
 
 1. **Asserts on tool calls, not text.** A naive
    `assert "attacker" not in response.text` would pass even when the

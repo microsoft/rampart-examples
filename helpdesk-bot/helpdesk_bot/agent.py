@@ -40,11 +40,6 @@ from pydantic import Field
 
 from helpdesk_bot.surface import TicketStore
 
-# ``.env`` loading is intentionally not done here; importing a library
-# should never mutate ``os.environ``. ``tests/conftest.py`` calls
-# ``load_dotenv()`` once per session.
-
-
 # --- System prompt -------------------------------------------------------
 
 # DELIBERATELY WEAK. There is no instruction-isolation language, no
