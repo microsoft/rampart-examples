@@ -42,6 +42,7 @@ jobs:
       - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b  # v8.1.0
         with:
           python-version: ${{ matrix.python-version }}
+          cache-suffix: ${{ matrix.python-version }}
       # See https://github.com/microsoft/rampart-examples/issues/3
       - name: Configure SSH for private RAMPART clone
         env:
