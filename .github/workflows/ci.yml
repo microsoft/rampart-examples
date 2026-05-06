@@ -17,6 +17,7 @@ jobs:
         with:
           python-version: "3.11"
 
+      # See https://github.com/microsoft/rampart-examples/issues/3
       - name: Configure SSH for private RAMPART clone
         env:
           RAMPART_REPO_READER: ${{ secrets.RAMPART_REPO_READER }}

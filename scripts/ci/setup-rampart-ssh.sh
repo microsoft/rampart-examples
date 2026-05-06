@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# To be removed once RAMPART is public:
+# https://github.com/microsoft/rampart-examples/issues/3
 
 set -euo pipefail
 
