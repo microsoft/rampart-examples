@@ -17,6 +17,10 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Authenticate git for internal RAMPART clone
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
       - name: uv sync (workspace)
         run: uv sync
       - name: ruff check
@@ -37,6 +41,10 @@ jobs:
       - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b  # v8.1.0
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Authenticate git for internal RAMPART clone
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
       - name: uv sync (workspace)
         run: uv sync
       - name: pytest (smoke)
