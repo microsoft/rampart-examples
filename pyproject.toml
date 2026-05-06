@@ -2,10 +2,6 @@
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
-# Top-level project for shared tooling config and the uv workspace.
-# Each demo subdirectory has its own pyproject.toml and is the unit of
-# install; this project is not pip-installable on its own.
-
 [project]
 name = "rampart-examples"
 version = "0.0.0"
@@ -14,7 +10,6 @@ requires-python = ">=3.11"
 dependencies = []
 
 [tool.pytest.ini_options]
-# Repo-root pytest discovers only the maintainer smoke suite.
 testpaths = ["tests"]
 asyncio_mode = "auto"
 addopts = "-ra -n auto -p no:rampart"
@@ -35,26 +30,15 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-# Pytest test modules (collection roots) and pytest's own conftest.py
-# do not have ``__init__.py`` by convention; pytest discovers them by path.
 "**/test_*.py" = [
-    "INP001",                                  # not a package; pytest collects by path
-    "S101",                                    # asserts are pytest's API
-    "D100", "D101", "D102", "D104", "D107",    # test names describe; no docstrings needed
-    "ANN001", "ANN201", "ANN202", "ANN401",    # type annotations on test bodies are noise
-    "PLR2004",                                 # magic values in assertions are the assertion
-    "ARG001", "ARG002",                        # unused fixture args (pytest passes by name)
-    "TRY003", "EM101", "EM102",                # exception-message style is fine in tests
-    "FBT001",                                  # bool positionals improve parametrize readability
-    "TC003",                                   # tests reference these symbols at runtime
-    "SLF001",                                  # tests legitimately exercise private members
-]
-"**/conftest.py" = [
     "INP001",
     "S101",
-    "D100", "D104",
-    "ANN001", "ANN201",
+    "TRY003",
+    "EM101",
+    "FBT001",
+    "SLF001",
 ]
+"**/conftest.py" = ["INP001"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
