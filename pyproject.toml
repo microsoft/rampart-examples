@@ -67,8 +67,11 @@ extra-paths = ["helpdesk-bot"]
 [tool.ty.src]
 include = ["helpdesk-bot", "tests"]
 
+[tool.uv.workspace]
+members = ["helpdesk-bot"]
+
 [tool.uv.sources]
-helpdesk-bot = { path = "helpdesk-bot", editable = true }
+helpdesk-bot = { workspace = true }
 
 [dependency-groups]
 dev = [

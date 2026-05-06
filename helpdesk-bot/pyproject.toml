@@ -14,7 +14,8 @@ authors = [
     { name = "Microsoft AI Red Team", email = "airedteam@microsoft.com" },
 ]
 dependencies = [
-    "agent-framework>=1.0.0",
+    "agent-framework-core>=1.2",
+    "agent-framework-openai>=1.2",
     "python-dotenv>=1.0",
     "pydantic>=2.7",
     "rampart @ git+https://github.com/microsoft/RAMPART.git@main",
