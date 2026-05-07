@@ -26,16 +26,6 @@ The trust boundary is named declaratively in
 [helpdesk_bot/manifest.py](helpdesk_bot/manifest.py) as
 `writable_by_untrusted=True` on `TicketStore`.
 
-**Explicitly out of scope** (real, but other demos):
-
-- 🚫 Compromised model weights or supply chain.
-- 🚫 Tool-return poisoning (the agent's own tools returning
-  attacker-controlled output).
-- 🚫 Multi-turn or adaptive jailbreaks; each test is a single turn.
-- 🚫 Operator-as-attacker; the operator's chat message is trusted.
-- 🚫 Side-channel observability; the detector reads structured tool
-  calls, not stdout, log files, or network traffic.
-
 ---
 
 ## 👀 What you'll see

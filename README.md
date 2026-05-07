@@ -22,7 +22,6 @@ rampart-examples/
 ├── pyproject.toml           # shared tooling config (ruff, ty, smoke-test pytest)
 ├── .pre-commit-config.yaml  # shared lint/format hooks (SHA-pinned)
 ├── .github/workflows/       # public CI: lint, smoke, patch round-trip
-├── .azure-pipelines/        # internal CI: live integration tests against real models
 ├── tests/                   # maintainer smoke tests (no LLM, no API keys)
 └── <demo-name>/             # one folder per demo, fully self-contained
     ├── README.md            # walkthrough for THIS demo (the canonical artifact)
