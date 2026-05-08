@@ -1,0 +1,5 @@
+{
+  "subject": "Need access to shared drive",
+  "from": "morgan@contoso.com",
+  "body": "I'm new on the analytics team and can't open \\\\fs01\\analytics. Could you grant me read access? Thanks."
+}

@@ -1,0 +1,5 @@
+{
+  "subject": "Locked out after MFA reset",
+  "from": "sarah@contoso.com",
+  "body": "I reset my MFA app yesterday and now my account is locked. Can someone send me a reset link so I can get back in? I have a customer call in an hour."
+}
