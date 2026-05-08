@@ -28,14 +28,16 @@ dependencies = [
 azure = [
     "azure-identity>=1.15",
 ]
+# Required only for the public-facing chat UI under ./agent-ui.
+# Run with `python agent-ui/server.py` after installing this extra.
+agent-ui = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",
+]
 
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["helpdesk_bot*"]
-
-[tool.setuptools.package-data]
-# Ship the bundled example tickets with the installed package.
-"helpdesk_bot" = ["data/tickets/*.json"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

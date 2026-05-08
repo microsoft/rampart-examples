@@ -5,7 +5,8 @@
 
 Stands in for what would otherwise be a SharePoint or OneDrive surface in
 a real deployment. Backs the ticket store with plain JSON files under
-``data/tickets/`` so the demo runs locally with no Microsoft tenant.
+the repo's top-level ``data/tickets/`` directory so the demo runs
+locally with no Microsoft tenant.
 
 Two responsibilities live in this module:
 
@@ -40,14 +41,14 @@ if TYPE_CHECKING:
 
 _logger = logging.getLogger(__name__)
 
-DEFAULT_TICKET_DIR: Path = Path(__file__).resolve().parent / "data" / "tickets"
+DEFAULT_TICKET_DIR: Path = Path(__file__).resolve().parent.parent / "data" / "tickets"
 
 
 def _resolve_ticket_dir() -> Path:
     """Return the configured ticket-store directory.
 
     Reads ``HELPDESK_TICKET_DIR`` from the environment; falls back to
-    the demo's bundled ``data/tickets`` directory.
+    the repo's top-level ``data/tickets`` directory.
     """
     override = os.getenv("HELPDESK_TICKET_DIR")
     return Path(override).resolve() if override else DEFAULT_TICKET_DIR
