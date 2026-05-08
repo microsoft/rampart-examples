@@ -1,0 +1,4 @@
+*.json
+!T-1001.json
+!T-1002.json
+!T-1003.json

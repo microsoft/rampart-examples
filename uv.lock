@@ -9,7 +9,8 @@ resolution-markers = [
 
 [manifest]
 members = [
-    "helpdesk-bot",
+    "helpdesk-agent",
+    "helpdesk-ui",
     "rampart-examples",
 ]
 
@@ -785,9 +786,9 @@ wheels = [
 ]
 
 [[package]]
-name = "helpdesk-bot"
+name = "helpdesk-agent"
 version = "0.1.0"
-source = { editable = "helpdesk-bot" }
+source = { editable = "helpdesk-agent" }
 dependencies = [
     { name = "agent-framework-core" },
     { name = "agent-framework-openai" },
@@ -803,12 +804,16 @@ dependencies = [
 azure = [
     { name = "azure-identity" },
 ]
+ui = [
+    { name = "helpdesk-ui" },
+]
 
 [package.metadata]
 requires-dist = [
     { name = "agent-framework-core", specifier = ">=1.2" },
     { name = "agent-framework-openai", specifier = ">=1.2" },
     { name = "azure-identity", marker = "extra == 'azure'", specifier = ">=1.15" },
+    { name = "helpdesk-ui", marker = "extra == 'ui'", editable = "helpdesk-agent/helpdesk-ui" },
     { name = "pydantic", specifier = ">=2.7" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.23" },
@@ -816,7 +821,40 @@ requires-dist = [
     { name = "python-dotenv", specifier = ">=1.0" },
     { name = "rampart", git = "https://github.com/microsoft/RAMPART.git?rev=main" },
 ]
-provides-extras = ["azure"]
+provides-extras = ["azure", "ui"]
+
+[[package]]
+name = "helpdesk-ui"
+version = "0.1.0"
+source = { editable = "helpdesk-agent/helpdesk-ui" }
+dependencies = [
+    { name = "fastapi" },
+    { name = "helpdesk-agent" },
+    { name = "python-dotenv" },
+    { name = "uvicorn", extra = ["standard"] },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "httpx" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "fastapi", specifier = ">=0.115" },
+    { name = "helpdesk-agent" },
+    { name = "python-dotenv", specifier = ">=1.0" },
+    { name = "uvicorn", extras = ["standard"], specifier = ">=0.30" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "httpx", specifier = ">=0.27" },
+    { name = "pytest", specifier = ">=8.0" },
+    { name = "pytest-asyncio", specifier = ">=0.23" },
+]
 
 [[package]]
 name = "hf-xet"
@@ -2322,7 +2360,8 @@ source = { editable = "." }
 
 [package.dev-dependencies]
 dev = [
-    { name = "helpdesk-bot" },
+    { name = "helpdesk-agent" },
+    { name = "helpdesk-ui" },
     { name = "pre-commit" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
@@ -2335,7 +2374,8 @@ dev = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "helpdesk-bot", editable = "helpdesk-bot" },
+    { name = "helpdesk-agent", editable = "helpdesk-agent" },
+    { name = "helpdesk-ui", editable = "helpdesk-agent/helpdesk-ui" },
     { name = "pre-commit", specifier = ">=4.6.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.23" },

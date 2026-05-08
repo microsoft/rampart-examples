@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "helpdesk-ui"
+version = "0.1.0"
+description = "Demo web UI (FastAPI + React) for the RAMPART helpdesk-agent showcase."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11,<3.14"
+authors = [
+    { name = "Microsoft AI Red Team", email = "airedteam@microsoft.com" },
+]
+dependencies = [
+    "helpdesk-agent",
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "python-dotenv>=1.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "httpx>=0.27",
+]
+
+[project.scripts]
+helpdesk-ui = "helpdesk_ui.app:run"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["helpdesk_ui*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+markers = ["e2e: opt-in browser tests (Playwright + chromium)"]
+addopts = "-ra -m 'not e2e'"

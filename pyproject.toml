@@ -20,14 +20,6 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["ALL"]
-ignore = [
-    # Two pairs of mutually-exclusive pydocstyle rules; pick one of each.
-    "D203",  # incompatible with D211 (no-blank-line-before-class)
-    "D213",  # incompatible with D212 (multi-line-summary-first-line)
-    # Conflicts with the formatter; ``ruff format`` owns line wrapping
-    # and intentionally leaves a few long strings/URLs alone.
-    "COM812",
-]
 
 [tool.ruff.lint.per-file-ignores]
 "**/test_*.py" = [
@@ -37,8 +29,20 @@ ignore = [
     "EM101",
     "FBT001",
     "SLF001",
+    "D",        # docstrings inside test bodies are noise
+    "PLR2004",  # status codes / counts as bare ints are fine in tests
+    "ARG001",   # pytest fixtures arrive as unused-looking parameters
 ]
-"**/conftest.py" = ["INP001"]
+"**/conftest.py" = [
+    "INP001",
+    "D"
+]
+"**/__init__.py" = ["D104"]
+# Pydantic models + FastAPI route handlers introspect annotations at
+# runtime (model rebuild, get_type_hints), so type imports MUST stay
+# at module top level even with ``from __future__ import annotations``.
+"helpdesk-agent/helpdesk-ui/helpdesk_ui/schemas.py" = ["TC003"]
+"helpdesk-agent/helpdesk-ui/helpdesk_ui/routes/*.py" = ["TC001"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
@@ -46,20 +50,22 @@ convention = "google"
 [tool.ty.environment]
 python-version = "3.11"
 python = ".venv"
-extra-paths = ["helpdesk-bot"]
+extra-paths = ["helpdesk-agent", "helpdesk-agent/helpdesk-ui"]
 
 [tool.ty.src]
-include = ["helpdesk-bot", "tests"]
+include = ["helpdesk-agent", "tests"]
 
 [tool.uv.workspace]
-members = ["helpdesk-bot"]
+members = ["helpdesk-agent", "helpdesk-agent/helpdesk-ui"]
 
 [tool.uv.sources]
-helpdesk-bot = { workspace = true }
+helpdesk-agent = { workspace = true }
+helpdesk-ui = { workspace = true }
 
 [dependency-groups]
 dev = [
-    "helpdesk-bot",
+    "helpdesk-agent",
+    "helpdesk-ui",
     "pytest>=8.0",
     "pytest-asyncio>=0.23",
     "pytest-xdist>=3.6",
