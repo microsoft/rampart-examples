@@ -1,0 +1,199 @@
+@import "tailwindcss";
+@plugin "tailwind-scrollbar";
+
+/* ------------------------------------------------------------------
+   Theme tokens
+   ------------------------------------------------------------------
+   Single source of truth for the palette + type scale. Tailwind v4
+   auto-generates utility classes from each ``--color-<name>`` token,
+   so components write ``bg-surface text-fg-muted`` instead of raw
+   ``bg-slate-900 text-slate-400``.
+
+   The default tokens below are dark theme. ``data-theme="light"`` on
+   <html> overrides them; the brand/danger accents stay the same in
+   both because they read on either ground.
+   ------------------------------------------------------------------ */
+@theme {
+  /* Type scale. Body lands at 17 px; size jumps follow the
+     1.125 modular scale. */
+  --text-xs: 13px;
+  --text-sm: 15px;
+  --text-base: 17px;
+  --text-lg: 19px;
+  --text-xl: 22px;
+
+  /* Mono font */
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Surfaces */
+  --color-bg: #020617;
+  --color-surface: #0f172a;
+  --color-surface-2: #1e293b;
+  --color-border: #1e293b;
+  --color-border-strong: #334155;
+
+  /* Foreground */
+  --color-fg: #e2e8f0;
+  --color-fg-muted: #94a3b8;
+  --color-fg-subtle: #64748b;
+
+  /* Accents (constant across themes) */
+  --color-brand: #34d399;
+  --color-brand-2: #047857;
+  --color-danger: #f87171;
+  --color-danger-2: #b91c1c;
+  --color-info: #93c5fd;
+
+  /* Syntax accents for tool-call cards. Tuned for readable
+     contrast on the dark surface; the [data-theme="light"] block
+     darkens them so they aren't pastel-on-white. */
+  --color-fn: #6ee7b7; /* emerald-300 */
+  --color-syntax-string: #fde68a; /* amber-200 */
+  --color-syntax-number: #7dd3fc; /* sky-300 */
+  --color-syntax-bool: #c4b5fd; /* violet-300 */
+  --color-code-bg: var(--color-bg);
+
+  /* Chat bubbles. Themed separately because the user/assistant
+     contrast that reads on dark slate doesn't read on white. */
+  --color-bubble-agent: #1e293b; /* slate-800; sits above bg-bg */
+  --color-bubble-agent-fg: #e2e8f0;
+  --color-bubble-user: #075985; /* sky-800; deep enough that white text reads */
+  --color-bubble-user-fg: #f0f9ff; /* sky-50 */
+}
+
+/* Light theme overrides. Same token names, different values; nothing
+   in the components changes. Brand/danger accents stay; syntax
+   colours darken so they aren't pastel-on-white. */
+[data-theme="light"] {
+  --color-bg: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-2: #f1f5f9;
+  --color-border: #e2e8f0;
+  --color-border-strong: #cbd5e1;
+
+  --color-fg: #0f172a;
+  --color-fg-muted: #475569;
+  --color-fg-subtle: #64748b;
+
+  --color-fn: #047857; /* emerald-700 */
+  --color-syntax-string: #92400e; /* amber-800 — was the unreadable yellow */
+  --color-syntax-number: #075985; /* sky-800 */
+  --color-syntax-bool: #5b21b6; /* violet-800 */
+  --color-code-bg: #f1f5f9; /* slate-100; readable code bg on white */
+
+  --color-bubble-agent: #ffffff; /* white card on the slate-50 page */
+  --color-bubble-agent-fg: #0f172a;
+  --color-bubble-user: #0c4a6e; /* sky-900; high contrast vs page */
+  --color-bubble-user-fg: #f0f9ff;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-fg);
+}
+
+/* Markdown bubbles: token-driven so they read on either theme. */
+.markdown p {
+  margin: 0 0 0.75rem 0;
+}
+.markdown p:last-child {
+  margin-bottom: 0;
+}
+.markdown ul,
+.markdown ol {
+  margin: 0 0 0.75rem 1.25rem;
+}
+.markdown li {
+  margin-bottom: 0.25rem;
+}
+.markdown code {
+  background: var(--color-surface-2);
+  padding: 0.05rem 0.3rem;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+}
+.markdown pre {
+  background: var(--color-surface-2);
+  padding: 0.75rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  margin: 0 0 0.75rem 0;
+}
+.markdown pre code {
+  background: transparent;
+  padding: 0;
+}
+.markdown blockquote {
+  border-left: 3px solid var(--color-border-strong);
+  padding-left: 0.75rem;
+  color: var(--color-fg-muted);
+}
+.markdown h1,
+.markdown h2,
+.markdown h3,
+.markdown h4 {
+  font-weight: 600;
+  margin: 0.75rem 0 0.5rem 0;
+}
+.markdown a {
+  color: var(--color-info);
+  text-decoration: underline;
+}
+
+/* When the markdown lives inside a deep-blue user bubble, inline
+   code, pre blocks, and links need their own colours so they don't
+   collide with the bubble's background. */
+.bg-bubble-user .markdown code,
+.bg-bubble-user .markdown pre {
+  background: rgba(255, 255, 255, 0.12);
+  color: inherit;
+}
+.bg-bubble-user .markdown a {
+  color: #bae6fd; /* sky-200; reads on sky-800/-900 */
+}
+.bg-bubble-user .markdown blockquote {
+  border-left-color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Streaming cursor next to the live tail bubble. */
+.streaming-cursor {
+  display: inline-block;
+  width: 0.5ch;
+  margin-left: 0.1ch;
+  animation: blink 1s step-end infinite;
+}
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Pending tool-call placeholder: a small left-to-right gradient sweep.
+   Tokenised so it reads on dark and light. */
+.shimmer {
+  background-image: linear-gradient(
+    90deg,
+    var(--color-surface) 0%,
+    var(--color-surface-2) 50%,
+    var(--color-surface) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}

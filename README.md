@@ -12,7 +12,7 @@ adapter, and tests; nothing here at the repo root is required at runtime.
 
 | Demo | What it shows |
 |---|---|
-| [helpdesk-bot](helpdesk-bot/README.md) | Indirect prompt injection (XPIA) via a poisoned support ticket. Single-`git apply` red -> green walkthrough. |
+| [helpdesk-agent](helpdesk-agent/README.md) | Indirect prompt injection (XPIA) via a poisoned support ticket. Single-`git apply` red -> green walkthrough. |
 
 ## Repository layout
 

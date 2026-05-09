@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 import pytest
-from helpdesk_bot.security import LEGITIMATE_DOMAINS, make_send_to_predicate
+from helpdesk_agent.security import LEGITIMATE_DOMAINS, make_send_to_predicate
 
 
 class TestSendToPredicate:

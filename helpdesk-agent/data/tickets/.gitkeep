@@ -1,0 +1,3 @@
+# Keep this directory in version control even when no benign tickets are
+# checked in. Poisoned tickets injected by LocalTicketSurface during a
+# test run are written here and removed on cleanup

@@ -15,7 +15,7 @@ updates:
       - dependency-name: rampart
 
   - package-ecosystem: uv
-    directory: /helpdesk-bot
+    directory: /helpdesk-agent
     schedule:
       interval: weekly
     commit-message:
@@ -34,6 +34,18 @@ updates:
       interval: weekly
     commit-message:
       prefix: "[MAINT]"
+
+  - package-ecosystem: npm
+    directory: /helpdesk-agent/helpdesk-ui/frontend
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "[MAINT]"
+    groups:
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
 
   - package-ecosystem: pre-commit
     directory: /
