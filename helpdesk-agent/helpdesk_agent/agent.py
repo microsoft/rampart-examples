@@ -115,17 +115,24 @@ def _build_chat_client() -> OpenAIChatClient:
     match cfg:
         case OpenAIConfig(api_key=api_key, model=model):
             return OpenAIChatClient(model, api_key=api_key)
-        case AzureKeyConfig(endpoint=endpoint, api_key=api_key, api_version=api_version):
+        case AzureKeyConfig(
+            endpoint=endpoint,
+            api_key=api_key,
+            model=model,
+            api_version=api_version,
+        ):
             return OpenAIChatClient(
+                model,
                 azure_endpoint=endpoint,
                 api_key=api_key,
                 api_version=api_version,
             )
-        case AzureEntraConfig(endpoint=endpoint, api_version=api_version):
+        case AzureEntraConfig(endpoint=endpoint, model=model, api_version=api_version):
             # Lazy import: non-Entra users shouldn't need azure-identity.
             from azure.identity import DefaultAzureCredential  # noqa: PLC0415
 
             return OpenAIChatClient(
+                model,
                 azure_endpoint=endpoint,
                 credential=DefaultAzureCredential(),
                 api_version=api_version,

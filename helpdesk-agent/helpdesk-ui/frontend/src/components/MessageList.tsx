@@ -16,6 +16,11 @@ export function MessageList({ messages, streaming, onRetry }: Props) {
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
+  // Re-run on every message/streaming change so we keep the viewport
+  // pinned to the bottom while a reply streams — but only when the
+  // user was already near the bottom (otherwise they're reading
+  // scrollback).
+  // biome-ignore lint/correctness/useExhaustiveDependencies: deps are change triggers, not closure reads
   useEffect(() => {
     const scroller = scrollerRef.current;
     if (!scroller) return;
@@ -23,7 +28,7 @@ export function MessageList({ messages, streaming, onRetry }: Props) {
     if (distanceFromBottom < NEAR_BOTTOM_PX) {
       scroller.scrollTop = scroller.scrollHeight;
     }
-  }, []);
+  }, [messages, streaming]);
 
   const lastIdx = messages.length - 1;
   const lastErrorIdx = (() => {

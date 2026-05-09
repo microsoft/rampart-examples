@@ -59,10 +59,9 @@ _MAX_BODY_BYTES = 256 * 1024
 def create_app() -> FastAPI:
     """Build the FastAPI app.
 
-    Args:
-        agent_factory: optional callable returning a fresh agent per
-            chat turn. Defaults to ``helpdesk_agent.agent.build_agent``.
-            Tests pass a fake to avoid needing an LLM provider.
+    The agent factory is injected per-request via FastAPI's dependency
+    system (see ``helpdesk_ui.routes.chat.get_agent_factory``). Tests
+    swap it via ``app.dependency_overrides[get_agent_factory]``.
     """
     app = FastAPI(title="HelpdeskAgent")
 

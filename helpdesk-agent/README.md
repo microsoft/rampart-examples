@@ -66,6 +66,13 @@ uv sync                          # workspace venv: agent + UI + dev tools
 cp .env.example .env             # then edit .env (see Provider configuration)
 ```
 
+The web UI also needs its React bundle built once before the server
+can serve it:
+
+```bash
+( cd helpdesk-ui/frontend && npm ci && npm run build )
+```
+
 Run everything with `uv run` so the workspace venv is always picked up,
 no matter which directory you're in:
 
