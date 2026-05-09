@@ -157,7 +157,10 @@ export function ChatPanel({
   return (
     <section className="flex h-full flex-col">
       <header className="border-b border-border bg-surface/60 px-6 py-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-fg-muted">
+        <h2
+          className="truncate text-sm font-semibold uppercase tracking-wider text-fg-muted"
+          title={conversation?.title}
+        >
           {conversation ? conversation.title : "Chat"}
         </h2>
       </header>

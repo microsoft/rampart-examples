@@ -26,8 +26,6 @@ export interface Conversation {
 const KEY_CONVERSATIONS = "helpdesk-ui:conversations:v1";
 const CHANNEL_NAME = "helpdesk-ui:conversations";
 
-const TITLE_MAX = 40;
-
 const listeners = new Set<() => void>();
 
 function loadInitial(): Conversation[] {
@@ -115,9 +113,9 @@ export const conversations = {
     if (!conv) return;
     const stamped: ChatMessage = { ...msg, id: msg.id ?? crypto.randomUUID() };
     const next = { ...conv, messages: [...conv.messages, stamped] };
-    if (next.title === "New chat" && msg.role === "user" && msg.content.trim().length > 0) {
-      const trimmed = msg.content.trim().slice(0, TITLE_MAX);
-      next.title = trimmed.length === msg.content.trim().length ? trimmed : `${trimmed}…`;
+    if (next.title === "New chat" && msg.role === "user") {
+      const trimmed = msg.content.trim();
+      if (trimmed) next.title = trimmed;
     }
     setState(replaceAt(idx, next));
   },
