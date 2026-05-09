@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 export interface ToolCall {
   callId?: string;
@@ -28,7 +28,9 @@ const CHANNEL_NAME = "helpdesk-ui:conversations";
 
 const TITLE_MAX = 40;
 
-function readAll(): Conversation[] {
+const listeners = new Set<() => void>();
+
+function loadInitial(): Conversation[] {
   try {
     const raw = sessionStorage.getItem(KEY_CONVERSATIONS);
     if (!raw) return [];
@@ -39,13 +41,17 @@ function readAll(): Conversation[] {
   }
 }
 
-function writeAll(list: Conversation[]): void {
+let state: Conversation[] = loadInitial();
+
+function setState(next: Conversation[]): void {
+  state = next;
   try {
-    sessionStorage.setItem(KEY_CONVERSATIONS, JSON.stringify(list));
+    sessionStorage.setItem(KEY_CONVERSATIONS, JSON.stringify(state));
   } catch {
-    /* quota or disabled storage; mutations are best-effort */
+    /* quota or disabled storage; in-memory state still authoritative */
   }
-  postChange();
+  for (const listener of listeners) listener();
+  getChannel()?.postMessage({ type: "change" });
 }
 
 let channel: BroadcastChannel | null = null;
@@ -53,20 +59,45 @@ function getChannel(): BroadcastChannel | null {
   if (channel) return channel;
   if (typeof BroadcastChannel === "undefined") return null;
   channel = new BroadcastChannel(CHANNEL_NAME);
+  // Cross-tab updates: re-read from storage and notify subscribers.
+  channel.addEventListener("message", () => {
+    state = loadInitial();
+    for (const listener of listeners) listener();
+  });
   return channel;
 }
 
-function postChange(): void {
-  getChannel()?.postMessage({ type: "change" });
+function subscribe(listener: () => void): () => void {
+  listeners.add(listener);
+  getChannel();
+  return () => {
+    listeners.delete(listener);
+  };
 }
+
+let cachedList: Conversation[] | null = null;
+let cachedListSource: Conversation[] | null = null;
+
+function getListSnapshot(): Conversation[] {
+  if (cachedListSource !== state) {
+    cachedList = [...state].sort((a, b) => b.createdAt - a.createdAt);
+    cachedListSource = state;
+  }
+  return cachedList ?? [];
+}
+
+function replaceAt(idx: number, conv: Conversation): Conversation[] {
+  return [...state.slice(0, idx), conv, ...state.slice(idx + 1)];
+}
+
+// --- Mutators -----------------------------------------------------------
 
 export const conversations = {
   list(): Conversation[] {
-    const all = readAll();
-    return [...all].sort((a, b) => b.createdAt - a.createdAt);
+    return getListSnapshot();
   },
   get(id: string): Conversation | null {
-    return readAll().find((c) => c.id === id) ?? null;
+    return state.find((c) => c.id === id) ?? null;
   },
   create(): Conversation {
     const conversation: Conversation = {
@@ -75,58 +106,49 @@ export const conversations = {
       createdAt: Date.now(),
       messages: [],
     };
-    writeAll([...readAll(), conversation]);
+    setState([...state, conversation]);
     return conversation;
   },
   appendMessage(id: string, msg: Omit<ChatMessage, "id"> & { id?: string }): void {
-    const all = readAll();
-    const idx = all.findIndex((c) => c.id === id);
-    const conv = all[idx];
+    const idx = state.findIndex((c) => c.id === id);
+    const conv = state[idx];
     if (!conv) return;
     const stamped: ChatMessage = { ...msg, id: msg.id ?? crypto.randomUUID() };
-    conv.messages = [...conv.messages, stamped];
-    if (conv.title === "New chat" && msg.role === "user" && msg.content.trim().length > 0) {
+    const next = { ...conv, messages: [...conv.messages, stamped] };
+    if (next.title === "New chat" && msg.role === "user" && msg.content.trim().length > 0) {
       const trimmed = msg.content.trim().slice(0, TITLE_MAX);
-      conv.title = trimmed.length === msg.content.trim().length ? trimmed : `${trimmed}…`;
+      next.title = trimmed.length === msg.content.trim().length ? trimmed : `${trimmed}…`;
     }
-    all[idx] = conv;
-    writeAll(all);
+    setState(replaceAt(idx, next));
   },
   mutateLastMessage(id: string, fn: (draft: ChatMessage) => void): void {
-    const all = readAll();
-    const idx = all.findIndex((c) => c.id === id);
-    const conv = all[idx];
+    const idx = state.findIndex((c) => c.id === id);
+    const conv = state[idx];
     if (!conv || conv.messages.length === 0) return;
     const tail = conv.messages[conv.messages.length - 1];
     if (!tail) return;
     const last = { ...tail };
     fn(last);
-    conv.messages = [...conv.messages.slice(0, -1), last];
-    all[idx] = conv;
-    writeAll(all);
+    setState(replaceAt(idx, { ...conv, messages: [...conv.messages.slice(0, -1), last] }));
   },
   remove(id: string): void {
-    writeAll(readAll().filter((c) => c.id !== id));
+    setState(state.filter((c) => c.id !== id));
   },
   truncateFrom(id: string, fromIndex: number): void {
-    const all = readAll();
-    const idx = all.findIndex((c) => c.id === id);
-    const conv = all[idx];
+    const idx = state.findIndex((c) => c.id === id);
+    const conv = state[idx];
     if (!conv) return;
     if (fromIndex < 0 || fromIndex >= conv.messages.length) return;
-    all[idx] = { ...conv, messages: conv.messages.slice(0, fromIndex) };
-    writeAll(all);
+    setState(replaceAt(idx, { ...conv, messages: conv.messages.slice(0, fromIndex) }));
   },
   recordTicketReference(id: string, ticketId: string): void {
-    const all = readAll();
-    const idx = all.findIndex((c) => c.id === id);
-    const conv = all[idx];
+    const idx = state.findIndex((c) => c.id === id);
+    const conv = state[idx];
     if (!conv) return;
     const refs = new Set(conv.referencedTickets ?? []);
     if (refs.has(ticketId)) return;
     refs.add(ticketId);
-    all[idx] = { ...conv, referencedTickets: [...refs] };
-    writeAll(all);
+    setState(replaceAt(idx, { ...conv, referencedTickets: [...refs] }));
   },
 };
 
@@ -138,7 +160,7 @@ export function extractTicketIds(text: string): string[] {
 
 export function allReferencedTicketIds(): Set<string> {
   const out = new Set<string>();
-  for (const c of readAll()) {
+  for (const c of state) {
     for (const id of c.referencedTickets ?? []) out.add(id);
   }
   return out;
@@ -148,15 +170,8 @@ export function useConversations(): {
   conversations: Conversation[];
   refresh: () => void;
 } {
-  const [tick, setTick] = useState(0);
-  const refresh = useCallback(() => setTick((t) => t + 1), []);
-  useEffect(() => {
-    const ch = getChannel();
-    if (!ch) return;
-    const onMessage = () => refresh();
-    ch.addEventListener("message", onMessage);
-    return () => ch.removeEventListener("message", onMessage);
-  }, [refresh]);
-  void tick; // dependency for re-reading the snapshot
-  return { conversations: conversations.list(), refresh };
+  const list = useSyncExternalStore(subscribe, getListSnapshot, getListSnapshot);
+  return { conversations: list, refresh: noop };
 }
+
+function noop(): void {}

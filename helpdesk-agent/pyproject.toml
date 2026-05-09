@@ -28,9 +28,7 @@ dependencies = [
 azure = [
     "azure-identity>=1.15",
 ]
-# Visual demo surface (FastAPI + React). Pulls in the helpdesk-ui
-# package so a single ``pip install -e '.[ui]'`` gives you the agent,
-# its tests, and the web UI in one venv.
+# For the web ui
 ui = [
     "helpdesk-ui",
 ]

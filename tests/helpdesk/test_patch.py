@@ -22,11 +22,6 @@ if TYPE_CHECKING:
 class TestMitigationPatch:
     """The shipped ``mitigation.patch`` round-trips against the live ``agent.py``."""
 
-    @pytest.mark.skip(
-        reason=(
-            "mitigation.patch pending regeneration after the helpdesk-bot → helpdesk-agent rename"
-        ),
-    )
     def test_applies_and_reverses_cleanly(self, tmp_path: Path) -> None:
         """The published patch applies, parses, and reverses on a clean checkout.
 
