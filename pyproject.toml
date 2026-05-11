@@ -46,20 +46,20 @@ convention = "google"
 [tool.ty.environment]
 python-version = "3.11"
 python = ".venv"
-extra-paths = ["helpdesk-bot"]
+extra-paths = ["helpdesk-agent"]
 
 [tool.ty.src]
-include = ["helpdesk-bot", "tests"]
+include = ["helpdesk-agent", "tests"]
 
 [tool.uv.workspace]
-members = ["helpdesk-bot"]
+members = ["helpdesk-agent"]
 
 [tool.uv.sources]
-helpdesk-bot = { workspace = true }
+helpdesk-agent = { workspace = true }
 
 [dependency-groups]
 dev = [
-    "helpdesk-bot",
+    "helpdesk-agent",
     "pytest>=8.0",
     "pytest-asyncio>=0.23",
     "pytest-xdist>=3.6",

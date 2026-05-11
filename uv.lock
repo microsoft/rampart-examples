@@ -9,7 +9,7 @@ resolution-markers = [
 
 [manifest]
 members = [
-    "helpdesk-bot",
+    "helpdesk-agent",
     "rampart-examples",
 ]
 
@@ -785,9 +785,9 @@ wheels = [
 ]
 
 [[package]]
-name = "helpdesk-bot"
+name = "helpdesk-agent"
 version = "0.1.0"
-source = { editable = "helpdesk-bot" }
+source = { editable = "helpdesk-agent" }
 dependencies = [
     { name = "agent-framework-core" },
     { name = "agent-framework-openai" },
@@ -800,6 +800,10 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
+agent-ui = [
+    { name = "fastapi" },
+    { name = "uvicorn", extra = ["standard"] },
+]
 azure = [
     { name = "azure-identity" },
 ]
@@ -809,14 +813,16 @@ requires-dist = [
     { name = "agent-framework-core", specifier = ">=1.2" },
     { name = "agent-framework-openai", specifier = ">=1.2" },
     { name = "azure-identity", marker = "extra == 'azure'", specifier = ">=1.15" },
+    { name = "fastapi", marker = "extra == 'agent-ui'", specifier = ">=0.110" },
     { name = "pydantic", specifier = ">=2.7" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.23" },
     { name = "pytest-xdist", specifier = ">=3.8.0" },
     { name = "python-dotenv", specifier = ">=1.0" },
     { name = "rampart", git = "https://github.com/microsoft/RAMPART.git?rev=main" },
+    { name = "uvicorn", extras = ["standard"], marker = "extra == 'agent-ui'", specifier = ">=0.29" },
 ]
-provides-extras = ["azure"]
+provides-extras = ["azure", "agent-ui"]
 
 [[package]]
 name = "hf-xet"
@@ -2322,7 +2328,7 @@ source = { editable = "." }
 
 [package.dev-dependencies]
 dev = [
-    { name = "helpdesk-bot" },
+    { name = "helpdesk-agent" },
     { name = "pre-commit" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
@@ -2335,7 +2341,7 @@ dev = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "helpdesk-bot", editable = "helpdesk-bot" },
+    { name = "helpdesk-agent", editable = "helpdesk-agent" },
     { name = "pre-commit", specifier = ">=4.6.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.23" },

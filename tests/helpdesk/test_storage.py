@@ -8,7 +8,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
-from helpdesk_bot import LocalTicketSurface, TicketStore
+from helpdesk_agent import LocalTicketSurface, TicketStore
 from rampart import Payload
 
 if TYPE_CHECKING:

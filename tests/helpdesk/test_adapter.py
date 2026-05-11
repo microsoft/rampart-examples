@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
-from helpdesk_bot import HelpdeskSession
+from helpdesk_agent import HelpdeskSession
 
 from ._helpers import content, fake_response
 

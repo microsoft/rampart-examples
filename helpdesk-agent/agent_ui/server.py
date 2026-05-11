@@ -26,17 +26,16 @@ import logging
 import os
 import uuid
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
 
 from agent_framework import AgentSession
 from dotenv import load_dotenv
 from fastapi import Cookie, FastAPI, HTTPException, Response
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
-
 from helpdesk_agent.agent import build_agent
 from helpdesk_agent.surface import TicketStore
+from pydantic import BaseModel
 
 # Load .env once at import time so the agent's chat-client factory
 # sees the provider credentials. Mirrors what tests/conftest.py does.
@@ -47,9 +46,12 @@ _logger = logging.getLogger(__name__)
 
 _STATIC_DIR: Path = Path(__file__).resolve().parent / "static"
 
+# Truncation length for ticket previews returned to the sidebar.
+_PREVIEW_MAX_LEN = 120
+
 # A "browser session" maps to one agent + one AgentSession (history).
 # In-memory only: this is a developer-facing UI, not multi-tenant.
-_BROWSER_SESSIONS: dict[str, "_ChatSession"] = {}
+_BROWSER_SESSIONS: dict[str, _ChatSession] = {}
 
 _SESSION_COOKIE = "helpdesk_agent_ui_sid"
 
@@ -116,9 +118,7 @@ def _extract_tool_calls(agent_response: object) -> list[dict[str, Any]]:
             result = getattr(content, "result", None)
             if result is None:
                 continue
-            results_by_call_id[call_id] = (
-                result if isinstance(result, str) else str(result)
-            )
+            results_by_call_id[call_id] = result if isinstance(result, str) else str(result)
 
     tool_calls: list[dict[str, Any]] = []
     for msg in messages:
@@ -214,7 +214,7 @@ def _allocate_ticket_id(store: TicketStore) -> str:
         return f"{_TICKET_ID_PREFIX}{_TICKET_ID_START}"
     highest = _TICKET_ID_START - 1
     for path in store.root.glob(f"{_TICKET_ID_PREFIX}*.json"):
-        suffix = path.stem[len(_TICKET_ID_PREFIX):]
+        suffix = path.stem[len(_TICKET_ID_PREFIX) :]
         if suffix.isdigit():
             highest = max(highest, int(suffix))
     return f"{_TICKET_ID_PREFIX}{highest + 1}"
@@ -223,7 +223,7 @@ def _allocate_ticket_id(store: TicketStore) -> str:
 # --- App ----------------------------------------------------------------
 
 
-def create_app() -> FastAPI:
+def create_app() -> FastAPI:  # noqa: C901, PLR0915 - FastAPI factory with nested route handlers; extracting them would just spread the same code across more files.
     """Build the FastAPI app for the HelpdeskAgent agent UI."""
     app = FastAPI(
         title="HelpdeskAgent Agent UI",
@@ -258,7 +258,8 @@ def create_app() -> FastAPI:
                     id=path.stem,
                     subject=str(data.get("subject", "")),
                     sender=str(data.get("from", "unknown@unknown")),
-                    preview=body[:120] + ("..." if len(body) > 120 else ""),
+                    preview=body[:_PREVIEW_MAX_LEN]
+                    + ("..." if len(body) > _PREVIEW_MAX_LEN else ""),
                 ),
             )
         return summaries
@@ -313,7 +314,7 @@ def create_app() -> FastAPI:
     async def chat(
         body: ChatRequest,
         response: Response,
-        sid: str | None = Cookie(default=None, alias=_SESSION_COOKIE),
+        sid: Annotated[str | None, Cookie(alias=_SESSION_COOKIE)] = None,
     ) -> ChatResponseModel:
         if not body.message.strip():
             raise HTTPException(status_code=400, detail="Empty message.")
@@ -334,7 +335,7 @@ def create_app() -> FastAPI:
                 body.message,
                 session=chat_session.session,
             )
-        except Exception as exc:  # noqa: BLE001 — surface provider errors verbatim
+        except Exception as exc:
             _logger.exception("Agent run failed.")
             raise HTTPException(status_code=500, detail=str(exc)) from exc
 
@@ -353,7 +354,7 @@ def create_app() -> FastAPI:
     @app.post("/api/reset")
     async def reset(
         response: Response,
-        sid: str | None = Cookie(default=None, alias=_SESSION_COOKIE),
+        sid: Annotated[str | None, Cookie(alias=_SESSION_COOKIE)] = None,
     ) -> dict[str, str]:
         if sid and sid in _BROWSER_SESSIONS:
             del _BROWSER_SESSIONS[sid]
@@ -362,7 +363,7 @@ def create_app() -> FastAPI:
 
     @app.get("/api/history")
     async def history(
-        sid: str | None = Cookie(default=None, alias=_SESSION_COOKIE),
+        sid: Annotated[str | None, Cookie(alias=_SESSION_COOKIE)] = None,
     ) -> dict[str, Any]:
         """Return prior turns so the UI can rehydrate after a page reload.
 
