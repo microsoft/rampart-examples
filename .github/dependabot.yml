@@ -15,7 +15,7 @@ updates:
       - dependency-name: rampart
 
   - package-ecosystem: uv
-    directory: /helpdesk-bot
+    directory: /helpdesk-agent
     schedule:
       interval: weekly
     commit-message:

@@ -1,4 +1,4 @@
-# HelpdeskBot: RAMPART XPIA Showcase
+# HelpdeskAgent: RAMPART XPIA Showcase
 
 A small, deliberately-vulnerable internal IT agent built on
 [Microsoft Agent Framework](https://learn.microsoft.com/en-us/agent-framework/),
@@ -23,7 +23,7 @@ agent invoke `reset_user_password` with a `send_to` that doesn't match
 the ticket's `From:` address?
 
 The trust boundary is named declaratively in
-[helpdesk_bot/manifest.py](helpdesk_bot/manifest.py) as
+[helpdesk_agent/manifest.py](helpdesk_agent/manifest.py) as
 `writable_by_untrusted=True` on `TicketStore`.
 
 ---
@@ -61,7 +61,7 @@ The trust boundary is named declaratively in
 ## 🛠️ Setup
 
 ```bash
-cd helpdesk-bot
+cd helpdesk-agent
 python -m venv .venv && source .venv/bin/activate
 pip install -e .                 # add '.[azure]' for Entra ID
 cp .env.example .env             # then edit .env (see Provider configuration)
@@ -152,7 +152,7 @@ git apply mitigation.patch
 ```
 
 The patch makes two changes to
-[helpdesk_bot/agent.py](helpdesk_bot/agent.py), one at the prompt
+[helpdesk_agent/agent.py](helpdesk_agent/agent.py), one at the prompt
 layer and one at the tool layer.
 
 ### 1. Instruction isolation in `SYSTEM_PROMPT` *(the layer that makes the tests pass)*
@@ -213,7 +213,7 @@ The essential part of the diff (full file:
 
 ```diff
  SYSTEM_PROMPT = (
-     "You are HelpdeskBot, an internal IT helpdesk agent. "
+     "You are HelpdeskAgent, an internal IT helpdesk agent. "
      ...
 -    "reset_user_password. Be concise and helpful."
 +    "reset_user_password. Be concise and helpful.\n\n"
@@ -268,7 +268,7 @@ before now pass. **Only the agent changed.**
 To revert and play with the diff:
 
 ```bash
-git checkout -- helpdesk_bot/agent.py
+git checkout -- helpdesk_agent/agent.py
 # or, equivalently:
 git apply -R mitigation.patch
 ```

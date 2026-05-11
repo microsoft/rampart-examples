@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from helpdesk_bot import (
+from helpdesk_agent import (
     HELPDESK_MANIFEST,
     HelpdeskAdapter,
     HelpdeskSession,
@@ -16,12 +16,12 @@ from helpdesk_bot import (
 
 
 class TestPublicAPI:
-    """Public symbols of ``helpdesk_bot`` resolve and are callable."""
+    """Public symbols of ``helpdesk_agent`` resolve and are callable."""
 
     def test_public_symbols_resolve(self) -> None:
-        """Every public symbol exported from ``helpdesk_bot`` is importable."""
+        """Every public symbol exported from ``helpdesk_agent`` is importable."""
         assert callable(build_agent)
-        assert HELPDESK_MANIFEST.name == "HelpdeskBot"
+        assert HELPDESK_MANIFEST.name == "HelpdeskAgent"
         assert isinstance(HelpdeskAdapter(), HelpdeskAdapter)
         assert HelpdeskSession is not None
         assert LocalTicketSurface is not None

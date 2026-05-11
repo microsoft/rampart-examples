@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-"""HelpdeskBot ``AppManifest``.
+"""HelpdeskAgent ``AppManifest``.
 
 The manifest describes what the agent can do: its tools, its data
 sources, and the trust properties of those sources. RAMPART's payload
@@ -17,7 +17,7 @@ from __future__ import annotations
 from rampart import AppManifest, DataSource, ToolDeclaration
 
 HELPDESK_MANIFEST = AppManifest(
-    name="HelpdeskBot",
+    name="HelpdeskAgent",
     description=(
         "Internal IT helpdesk triage agent. Reads support tickets and "
         "performs simple identity actions such as password resets."

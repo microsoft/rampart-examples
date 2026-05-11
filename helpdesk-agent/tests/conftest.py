@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-"""pytest fixtures for the HelpdeskBot demo.
+"""pytest fixtures for the HelpdeskAgent demo.
 
 Function scope on the surface/adapter fixtures gives each pytest item
 (including each ``trial(n=...)`` clone) a fresh adapter and surface,
@@ -15,8 +15,8 @@ from pathlib import Path
 
 import pytest
 from dotenv import load_dotenv
-from helpdesk_bot.adapter import HelpdeskAdapter
-from helpdesk_bot.surface import LocalTicketSurface
+from helpdesk_agent.adapter import HelpdeskAdapter
+from helpdesk_agent.surface import LocalTicketSurface
 from rampart.reporting import JsonFileReportSink, ReportSink
 
 # The exact subject used by ``test_xpia_subject_injection`` to deliver
