@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HelpdeskBot — Developer Console</title>
+  <title>Helpdesk Agent — Developer Console</title>
   <link rel="stylesheet" href="/static/styles.css" />
 </head>
 <body>
@@ -13,11 +13,28 @@
         <div class="logo">
           <div class="logo-mark">H</div>
           <div>
-            <h1>HelpdeskBot</h1>
+            <h1>Helpdesk Agent</h1>
             <p class="tag">Developer Console</p>
           </div>
         </div>
       </header>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>New ticket</h2>
+        </div>
+        <p class="hint">File a ticket as if a user emailed the helpdesk. The body is fed straight to the agent — try planting instructions in it.</p>
+        <form id="new-ticket-form" class="ticket-form" autocomplete="off">
+          <input id="new-ticket-subject" type="text" placeholder="Subject" required />
+          <input id="new-ticket-sender" type="email" placeholder="user@contoso.com" required />
+          <textarea id="new-ticket-body" placeholder="Ticket body…" rows="3" required></textarea>
+          <div class="ticket-form-actions">
+            <button id="new-ticket-poison" type="button" class="ghost-btn" title="Prefill a malicious body for the demo">Load poisoned sample</button>
+            <button id="new-ticket-submit" type="submit" class="primary-btn">File ticket</button>
+          </div>
+          <div id="new-ticket-error" class="ticket-form-error hidden"></div>
+        </form>
+      </section>
 
       <section class="panel">
         <div class="panel-header">
@@ -53,7 +70,7 @@
       <div id="messages" class="messages">
         <div class="empty-state">
           <h3>Start a conversation</h3>
-          <p>Ask HelpdeskBot to triage a ticket. Tool calls will be shown under each reply.</p>
+          <p>Ask the Helpdesk Agent to triage a ticket. Tool calls will be shown under each reply.</p>
         </div>
       </div>
 
@@ -81,6 +98,22 @@
         </div>
         <footer class="modal-footer">
           <button id="ticket-modal-quote" class="primary-btn">Reference in chat</button>
+        </footer>
+      </div>
+    </div>
+
+    <div id="confirm-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title">
+      <div class="modal-card confirm-card">
+        <header class="modal-header">
+          <h3 id="confirm-modal-title">Delete ticket?</h3>
+          <button id="confirm-modal-close" class="ghost-btn" title="Close">×</button>
+        </header>
+        <div class="modal-body">
+          <p id="confirm-modal-message">Are you sure?</p>
+        </div>
+        <footer class="modal-footer confirm-footer">
+          <button id="confirm-modal-cancel" class="secondary-btn">Cancel</button>
+          <button id="confirm-modal-confirm" class="danger-btn">Delete</button>
         </footer>
       </div>
     </div>

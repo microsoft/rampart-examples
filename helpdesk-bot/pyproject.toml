@@ -28,8 +28,8 @@ dependencies = [
 azure = [
     "azure-identity>=1.15",
 ]
-# Required only for the public-facing chat UI under ./agent-ui.
-# Run with `python agent-ui/server.py` after installing this extra.
+# Required only for the public-facing chat UI under ./agent_ui.
+# Run with `python -m agent_ui` after installing this extra.
 agent-ui = [
     "fastapi>=0.110",
     "uvicorn[standard]>=0.29",

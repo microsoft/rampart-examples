@@ -745,3 +745,147 @@ html, body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--border-strong);
 }
+
+/* --- New-ticket form --- */
+
+.ticket-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ticket-form input,
+.ticket-form textarea {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  resize: vertical;
+  transition: border-color 0.15s;
+}
+
+.ticket-form textarea {
+  font-family: var(--font-mono);
+  min-height: 60px;
+  max-height: 200px;
+}
+
+.ticket-form input:focus,
+.ticket-form textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+.ticket-form input::placeholder,
+.ticket-form textarea::placeholder {
+  color: var(--text-subtle);
+}
+
+.ticket-form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.ticket-form-actions .primary-btn {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.ticket-form-actions .ghost-btn {
+  font-size: 11px;
+  padding: 4px 0;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+}
+
+.ticket-form-error {
+  font-size: 11px;
+  color: var(--danger);
+  font-family: var(--font-mono);
+}
+
+.ticket-form-error.hidden {
+  display: none;
+}
+
+/* --- Ticket list extras --- */
+
+.ticket-list li {
+  position: relative;
+}
+
+.ticket-delete {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  background: transparent;
+  border: none;
+  color: var(--text-subtle);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.ticket-delete:hover {
+  color: var(--danger);
+  background: rgba(248, 81, 73, 0.12);
+}
+
+.ticket-empty {
+  color: var(--text-subtle);
+  font-size: 12px;
+  font-style: italic;
+}
+
+/* --- Confirm modal --- */
+
+.modal-card.confirm-card {
+  width: min(420px, 90vw);
+}
+
+.modal-body p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.modal-footer.confirm-footer {
+  gap: 8px;
+}
+
+.modal-footer.confirm-footer .secondary-btn {
+  width: auto;
+}
+
+.danger-btn {
+  font-family: var(--font-sans);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  transition: all 0.15s;
+  background: var(--danger);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  font-size: 13px;
+}
+
+.danger-btn:hover {
+  filter: brightness(1.1);
+}
+
+.danger-btn:focus {
+  outline: 2px solid var(--danger);
+  outline-offset: 2px;
+}

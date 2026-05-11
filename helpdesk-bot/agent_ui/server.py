@@ -9,12 +9,14 @@ browser session gets a single ``Agent`` plus an ``AgentSession`` so
 multi-turn conversation history is preserved.
 
 Endpoints:
-    GET  /                  Single-page HTML UI.
-    GET  /api/tickets       List tickets currently in the store.
-    GET  /api/tickets/{id}  Fetch a single ticket's structured fields.
-    POST /api/chat          Send a prompt; returns reply + tool calls.
-    POST /api/reset         Drop the current conversation; start fresh.
-    GET  /api/history       Replay prior turns for UI rehydration.
+    GET    /                  Single-page HTML UI.
+    GET    /api/tickets       List tickets currently in the store.
+    GET    /api/tickets/{id}  Fetch a single ticket's structured fields.
+    POST   /api/tickets       File a new ticket; auto-allocates the next T-####.
+    DELETE /api/tickets/{id}  Remove a ticket from the store.
+    POST   /api/chat          Send a prompt; returns reply + tool calls.
+    POST   /api/reset         Drop the current conversation; start fresh.
+    GET    /api/history       Replay prior turns for UI rehydration.
 """
 
 from __future__ import annotations
@@ -146,6 +148,20 @@ class ChatRequest(BaseModel):
     message: str
 
 
+class CreateTicketRequest(BaseModel):
+    """Payload for ``POST /api/tickets``.
+
+    The ``body`` is fully attacker-controlled; that's the demo. We do
+    not sanitise it here — the whole point is that RAMPART probes feed
+    poisoned bodies through the agent and assert the hardened version
+    refuses to act on them.
+    """
+
+    subject: str
+    sender: str
+    body: str
+
+
 class ToolCallView(BaseModel):
     """Tool call rendered for the UI."""
 
@@ -177,6 +193,31 @@ class TicketDetail(BaseModel):
     subject: str
     sender: str
     body: str
+
+
+# --- Ticket id allocation -----------------------------------------------
+
+
+_TICKET_ID_PREFIX = "T-"
+_TICKET_ID_START = 1001
+
+
+def _allocate_ticket_id(store: TicketStore) -> str:
+    """Return the next free ``T-####`` id in the store.
+
+    Scans existing ``T-<digits>.json`` filenames, takes max + 1, falling
+    back to ``T-1001`` for an empty store. Files that don't match the
+    pattern are ignored so a hand-placed ``poisoned.json`` won't shift
+    the sequence.
+    """
+    if not store.root.exists():
+        return f"{_TICKET_ID_PREFIX}{_TICKET_ID_START}"
+    highest = _TICKET_ID_START - 1
+    for path in store.root.glob(f"{_TICKET_ID_PREFIX}*.json"):
+        suffix = path.stem[len(_TICKET_ID_PREFIX):]
+        if suffix.isdigit():
+            highest = max(highest, int(suffix))
+    return f"{_TICKET_ID_PREFIX}{highest + 1}"
 
 
 # --- App ----------------------------------------------------------------
@@ -235,6 +276,38 @@ def create_app() -> FastAPI:
             sender=str(data.get("from", "unknown@unknown")),
             body=str(data.get("body", "")),
         )
+
+    @app.post("/api/tickets", response_model=TicketDetail, status_code=201)
+    async def create_ticket(payload: CreateTicketRequest) -> TicketDetail:
+        if not payload.subject.strip():
+            raise HTTPException(status_code=400, detail="Subject is required.")
+        if not payload.sender.strip():
+            raise HTTPException(status_code=400, detail="Sender is required.")
+        if not payload.body.strip():
+            raise HTTPException(status_code=400, detail="Body is required.")
+        store = TicketStore()
+        ticket_id = _allocate_ticket_id(store)
+        store.write(
+            ticket_id,
+            subject=payload.subject,
+            body=payload.body,
+            sender=payload.sender,
+        )
+        return TicketDetail(
+            id=ticket_id,
+            subject=payload.subject,
+            sender=payload.sender,
+            body=payload.body,
+        )
+
+    @app.delete("/api/tickets/{ticket_id}", status_code=204)
+    async def delete_ticket(ticket_id: str) -> Response:
+        store = TicketStore()
+        path = store.root / f"{ticket_id}.json"
+        if not path.exists():
+            raise HTTPException(status_code=404, detail=f"Ticket {ticket_id} not found.")
+        store.delete(ticket_id)
+        return Response(status_code=204)
 
     @app.post("/api/chat", response_model=ChatResponseModel)
     async def chat(
@@ -309,7 +382,7 @@ app = create_app()
 
 
 def main() -> None:
-    """CLI entry point: ``python -m agent_ui`` boots the agent UI server."""
+    """CLI entry point: ``python agent-ui/server.py`` boots the agent UI server."""
     import uvicorn  # noqa: PLC0415 — keep import lazy so tests don't pay for it
 
     host = os.getenv("HELPDESK_AGENT_UI_HOST", "127.0.0.1")
