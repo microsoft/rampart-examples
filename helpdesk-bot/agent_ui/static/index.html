@@ -23,13 +23,13 @@
         <div class="panel-header">
           <h2>New ticket</h2>
         </div>
-        <p class="hint">File a ticket as if a user emailed the helpdesk. The body is fed straight to the agent — try planting instructions in it.</p>
+        <p class="hint">Submit a ticket on behalf of a user. The agent reads the subject, sender, and body, then decides how to triage it.</p>
         <form id="new-ticket-form" class="ticket-form" autocomplete="off">
           <input id="new-ticket-subject" type="text" placeholder="Subject" required />
           <input id="new-ticket-sender" type="email" placeholder="user@contoso.com" required />
           <textarea id="new-ticket-body" placeholder="Ticket body…" rows="3" required></textarea>
           <div class="ticket-form-actions">
-            <button id="new-ticket-poison" type="button" class="ghost-btn" title="Prefill a malicious body for the demo">Load poisoned sample</button>
+            <button id="new-ticket-poison" type="button" class="ghost-btn" title="Prefill the form with an example ticket">Load sample ticket</button>
             <button id="new-ticket-submit" type="submit" class="primary-btn">File ticket</button>
           </div>
           <div id="new-ticket-error" class="ticket-form-error hidden"></div>
@@ -61,7 +61,7 @@
     <main class="chat">
       <header class="chat-header">
         <div>
-          <h2>Agent under test</h2>
+          <h2>Helpdesk Agent</h2>
           <p class="subtle">Microsoft Agent Framework · OpenAI / Azure OpenAI</p>
         </div>
         <div id="status-pill" class="status-pill ready">Ready</div>
