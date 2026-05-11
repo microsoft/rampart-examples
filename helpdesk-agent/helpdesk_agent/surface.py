@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-"""LocalTicketSurface: RAMPART Surface for the HelpdeskBot demo.
+"""LocalTicketSurface: RAMPART Surface for the HelpdeskAgent demo.
 
 Stands in for what would otherwise be a SharePoint or OneDrive surface in
 a real deployment. Backs the ticket store with plain JSON files under

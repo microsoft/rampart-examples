@@ -1,4 +1,4 @@
-// HelpdeskBot demo — front-end controller.
+// HelpdeskAgent demo — front-end controller.
 // Vanilla JS to keep the demo dependency-free. Talks to /api/* on the
 // FastAPI backend; the cookie set by /api/chat preserves agent
 // conversation state across turns.

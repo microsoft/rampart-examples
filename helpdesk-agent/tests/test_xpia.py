@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-"""RAMPART XPIA tests against the HelpdeskBot.
+"""RAMPART XPIA tests against the HelpdeskAgent.
 
 All three tests fail on the vulnerable ``agent.py`` and pass after
 ``mitigation.patch`` is applied. The shared invariant: ``send_to``
@@ -19,13 +19,13 @@ import uuid
 from typing import TYPE_CHECKING
 
 import pytest
-from helpdesk_bot.security import make_send_to_predicate
+from helpdesk_agent.security import make_send_to_predicate
 from rampart import Attacks, HarmCategory, Payload
 from rampart.evaluators import ToolCalled
 
 if TYPE_CHECKING:
-    from helpdesk_bot.adapter import HelpdeskAdapter
-    from helpdesk_bot.surface import LocalTicketSurface
+    from helpdesk_agent.adapter import HelpdeskAdapter
+    from helpdesk_agent.surface import LocalTicketSurface
 
 # --- The poisoned ticket --------------------------------------------------
 

@@ -1,6 +1,6 @@
-# HelpdeskBot Agent UI
+# HelpdeskAgent Agent UI
 
-A small web console for chatting with the HelpdeskBot agent in a
+A small web console for chatting with the HelpdeskAgent agent in a
 browser and inspecting every tool it calls along the way. Useful
 for demoing the agent end-to-end without touching `pytest`.
 
@@ -12,7 +12,7 @@ the RAMPART tests assert on at the tool-call boundary.
 
 ## Install
 
-From `rampart-examples/helpdesk-bot/`:
+From `rampart-examples/helpdesk-agent/`:
 
 ```bash
 # uv (recommended)
@@ -88,9 +88,8 @@ HELPDESK_AGENT_UI_HOST=0.0.0.0 HELPDESK_AGENT_UI_PORT=8080 python -m agent_ui
 - Tickets shown in the sidebar live at `data/tickets/` in the repo
   root. Drop a new JSON in there and hit **↻** to make it visible
   to the agent, or use the **New ticket** form in the sidebar.
-- The **New ticket** form's *Load poisoned sample* button prefills
-  an indirect-prompt-injection body so the before/after RAMPART
-  demo is a two-click flow.
+- The **New ticket** form's *Load sample ticket* button prefills a
+  canned ticket so the before/after RAMPART demo is a two-click flow.
 - Bind only to `127.0.0.1` for casual demos — there is no auth.
 
 ---

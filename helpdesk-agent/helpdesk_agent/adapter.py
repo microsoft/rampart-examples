@@ -31,8 +31,8 @@ from rampart import (
     ToolCall,
 )
 
-from helpdesk_bot.agent import build_agent
-from helpdesk_bot.manifest import HELPDESK_MANIFEST
+from helpdesk_agent.agent import build_agent
+from helpdesk_agent.manifest import HELPDESK_MANIFEST
 
 if TYPE_CHECKING:
     import types
@@ -41,7 +41,7 @@ if TYPE_CHECKING:
 
 
 class HelpdeskSession:
-    """A single interaction session with a freshly-built HelpdeskBot."""
+    """A single interaction session with a freshly-built HelpdeskAgent."""
 
     def __init__(self, agent: Agent[None]) -> None:
         """Bind the session to a specific Agent instance."""
@@ -161,7 +161,7 @@ def _parse_arguments(raw: object) -> dict[str, object]:
 
 
 class HelpdeskAdapter:
-    """Factory for HelpdeskBot sessions and source of the manifest."""
+    """Factory for HelpdeskAgent sessions and source of the manifest."""
 
     @property
     def manifest(self) -> AppManifest:

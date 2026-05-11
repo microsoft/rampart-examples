@@ -1,9 +1,9 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-"""FastAPI backend for the HelpdeskBot agent UI.
+"""FastAPI backend for the HelpdeskAgent agent UI.
 
-Wraps the ``helpdesk_bot`` agent under test in a small HTTP surface so
+Wraps the ``helpdesk_agent`` agent under test in a small HTTP surface so
 a browser-based UI can chat with it and inspect tool calls. Each
 browser session gets a single ``Agent`` plus an ``AgentSession`` so
 multi-turn conversation history is preserved.
@@ -35,8 +35,8 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from helpdesk_bot.agent import build_agent
-from helpdesk_bot.surface import TicketStore
+from helpdesk_agent.agent import build_agent
+from helpdesk_agent.surface import TicketStore
 
 # Load .env once at import time so the agent's chat-client factory
 # sees the provider credentials. Mirrors what tests/conftest.py does.
@@ -77,7 +77,7 @@ def _get_or_create_session(sid: str | None) -> tuple[str, _ChatSession]:
     return new_sid, _BROWSER_SESSIONS[new_sid]
 
 
-# --- Tool-call extraction (mirrors helpdesk_bot.adapter) -----------------
+# --- Tool-call extraction (mirrors helpdesk_agent.adapter) -----------------
 
 
 def _parse_arguments(raw: object) -> dict[str, object]:
@@ -224,10 +224,10 @@ def _allocate_ticket_id(store: TicketStore) -> str:
 
 
 def create_app() -> FastAPI:
-    """Build the FastAPI app for the HelpdeskBot agent UI."""
+    """Build the FastAPI app for the HelpdeskAgent agent UI."""
     app = FastAPI(
-        title="HelpdeskBot Agent UI",
-        description="Developer UI for chatting with the HelpdeskBot agent under test.",
+        title="HelpdeskAgent Agent UI",
+        description="Developer UI for chatting with the HelpdeskAgent agent under test.",
         version="0.1.0",
     )
 
@@ -388,7 +388,7 @@ def main() -> None:
     host = os.getenv("HELPDESK_AGENT_UI_HOST", "127.0.0.1")
     port = int(os.getenv("HELPDESK_AGENT_UI_PORT", "8000"))
     logging.basicConfig(level=logging.INFO)
-    _logger.info("Starting HelpdeskBot agent UI on http://%s:%d", host, port)
+    _logger.info("Starting HelpdeskAgent agent UI on http://%s:%d", host, port)
     uvicorn.run(app, host=host, port=port, log_level="info")
 
 

@@ -3,7 +3,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "helpdesk-bot"
+name = "helpdesk-agent"
 version = "0.1.0"
 description = "RAMPART showcase: indirect prompt injection (XPIA) against an Agent-Framework helpdesk triage bot."
 readme = "README.md"
@@ -37,7 +37,7 @@ agent-ui = [
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["helpdesk_bot*"]
+include = ["helpdesk_agent*"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

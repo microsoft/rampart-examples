@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-"""Run the HelpdeskBot agent UI with ``python -m agent_ui``."""
+"""Run the HelpdeskAgent agent UI with ``python -m agent_ui``."""
 
 from agent_ui.server import main
 
