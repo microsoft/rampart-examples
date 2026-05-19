@@ -40,4 +40,4 @@ include = ["helpdesk_bot*"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
-addopts = "-ra -n 10"
+addopts = "-ra"

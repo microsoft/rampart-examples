@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rampart-openclaw"
+version = "0.1.0"
+description = "RAMPART adapter and tests for OpenClaw (sandboxed agent)"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11,<3.14"
+authors = [
+    { name = "Microsoft AI Red Team", email = "airedteam@microsoft.com" },
+]
+dependencies = [
+    "rampart @ git+https://github.com/microsoft/RAMPART@766f71a7631a6f8088f8c2a6344317cea78dc4ae",
+    "aiohttp>=3.9",
+]
+
+[project.optional-dependencies]
+azure = [
+    "azure-identity>=1.15",
+    "azure-core>=1.30",
+]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "pytest-timeout",
+]
+
+[project.scripts]
+auth-proxy = "openclaw.auth.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
