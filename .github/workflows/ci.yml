@@ -1,7 +1,7 @@
 name: ci
 
 on:
-  pull_request_target:
+  pull_request:
   push:
     branches: [main]
 
@@ -11,21 +11,12 @@ permissions:
 jobs:
   lint:
     runs-on: ubuntu-latest
-    environment: ci-trusted
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-          persist-credentials: false
       - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b  # v8.1.0
         with:
           python-version: "3.11"
 
-      # See https://github.com/microsoft/rampart-examples/issues/3
-      - name: Configure SSH for private RAMPART clone
-        env:
-          RAMPART_REPO_READER: ${{ secrets.RAMPART_REPO_READER }}
-        run: ./scripts/ci/setup-rampart-ssh.sh
       - name: uv sync (workspace)
         run: uv sync
       - name: ruff check
@@ -37,25 +28,16 @@ jobs:
 
   smoke:
     runs-on: ubuntu-latest
-    environment: ci-trusted
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-          persist-credentials: false
       - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b  # v8.1.0
         with:
           python-version: ${{ matrix.python-version }}
           cache-suffix: ${{ matrix.python-version }}
-      # See https://github.com/microsoft/rampart-examples/issues/3
-      - name: Configure SSH for private RAMPART clone
-        env:
-          RAMPART_REPO_READER: ${{ secrets.RAMPART_REPO_READER }}
-        run: ./scripts/ci/setup-rampart-ssh.sh
       - name: uv sync (workspace)
         run: uv sync
       - name: pytest (smoke)
