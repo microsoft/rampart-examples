@@ -29,13 +29,15 @@ from __future__ import annotations
 import html
 import json
 import logging
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 
-from rampart.core.result import Result
-from rampart.core.types import Turn
-from rampart.reporting.sink import TestRunReport
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from rampart.core.result import Result
+    from rampart.core.types import Turn
+    from rampart.reporting.sink import TestRunReport
 
 logger = logging.getLogger(__name__)
 
@@ -83,8 +85,7 @@ def _payload_bearing_tool_names(*, result: Result) -> frozenset[str]:
     for record in result.injections:
         sn = record.surface_name
         if not (
-            sn.startswith(_PLUGIN_TOOL_SURFACE_PREFIX)
-            and sn.endswith(_TOOL_OUTPUT_SURFACE_SUFFIX)
+            sn.startswith(_PLUGIN_TOOL_SURFACE_PREFIX) and sn.endswith(_TOOL_OUTPUT_SURFACE_SUFFIX)
         ):
             continue
         # Extract ``<tool_name>`` from ``PluginTool(<tool_name>:tool_output)``.
@@ -107,7 +108,7 @@ class HtmlReportSink:
 
     async def emit_async(self, *, report: TestRunReport) -> None:
         self._output_dir.mkdir(parents=True, exist_ok=True)
-        timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%S")
+        timestamp = datetime.now(UTC).strftime("%Y-%m-%dT%H-%M-%S")
         filepath = self._output_dir / f"report_{timestamp}.html"
         content = self._render(report=report, timestamp=timestamp)
         filepath.write_text(content, encoding="utf-8")
@@ -160,7 +161,8 @@ class HtmlReportSink:
             sandbox_env_html=self._render_sandbox_env(sandbox_meta),
             surface_cards_html=self._render_surface_cards(surface_stats),
             heatmap_html=self._render_heatmap(
-                heatmap=heatmap_data, index_map=result_index_by_name,
+                heatmap=heatmap_data,
+                index_map=result_index_by_name,
             ),
             findings_html=self._render_findings(findings),
             results=results_html,
@@ -234,10 +236,7 @@ class HtmlReportSink:
                 "status": r.status.value,
                 "test_name": test_name,
             }
-        return [
-            {"scenario": s, "trials": t}
-            for s, t in rows.items()
-        ]
+        return [{"scenario": s, "trials": t} for s, t in rows.items()]
 
     @staticmethod
     def _build_findings(
@@ -248,25 +247,28 @@ class HtmlReportSink:
             total = stats["safe"] + stats["unsafe"]
             if stats["unsafe"] > 0:
                 rate = stats["unsafe"] / total * 100
-                findings.append({
-                    "color": "unsafe",
-                    "icon": "⚠️",
-                    "title": f"{surface} — {rate:.0f}% Attack Success",
-                    "body": (
-                        f"{stats['unsafe']}/{total} trials compromised "
-                        f"via {surface.lower()} injection."
-                    ),
-                })
+                findings.append(
+                    {
+                        "color": "unsafe",
+                        "icon": "⚠️",
+                        "title": f"{surface} — {rate:.0f}% Attack Success",
+                        "body": (
+                            f"{stats['unsafe']}/{total} trials compromised "
+                            f"via {surface.lower()} injection."
+                        ),
+                    }
+                )
             else:
-                findings.append({
-                    "color": "safe",
-                    "icon": "✅",
-                    "title": f"{surface} — Fully Defended",
-                    "body": (
-                        f"All {total} trials defended against "
-                        f"{surface.lower()} injection."
-                    ),
-                })
+                findings.append(
+                    {
+                        "color": "safe",
+                        "icon": "✅",
+                        "title": f"{surface} — Fully Defended",
+                        "body": (
+                            f"All {total} trials defended against {surface.lower()} injection."
+                        ),
+                    }
+                )
         return findings
 
     # Section renderers
@@ -327,7 +329,7 @@ class HtmlReportSink:
         # Workspace files.
         workspace = meta.get("workspace_files", [])
         if workspace:
-            items = "".join(f'<li>{html.escape(str(f))}</li>' for f in workspace[:15])
+            items = "".join(f"<li>{html.escape(str(f))}</li>" for f in workspace[:15])
             if len(workspace) > 15:
                 items += f"<li>… and {len(workspace) - 15} more</li>"
             cards += (
@@ -350,7 +352,7 @@ class HtmlReportSink:
             return ""
         return (
             '<div class="section-title"><span class="icon">🖥️</span> '
-            'Sandbox Environment</div>'
+            "Sandbox Environment</div>"
             f'<div class="sandbox-env">{cards}</div>'
         )
 
@@ -372,10 +374,12 @@ class HtmlReportSink:
             if stats.get("undetermined", 0) > 0:
                 pills += f' <span class="surface-stat surface-stat--other">{stats["undetermined"]} Undetermined</span>'
             if stats.get("error", 0) > 0:
-                pills += f' <span class="surface-stat surface-stat--other">{stats["error"]} Error</span>'
+                pills += (
+                    f' <span class="surface-stat surface-stat--other">{stats["error"]} Error</span>'
+                )
             cards += (
                 f'<div class="surface-card"><h4>{html.escape(surface)}</h4>'
-                f'<p>{html.escape(desc)}</p>'
+                f"<p>{html.escape(desc)}</p>"
                 f'<div class="surface-stats">{pills}</div></div>'
             )
         return cards
@@ -392,15 +396,13 @@ class HtmlReportSink:
         for row in heatmap:
             trials = row["trials"]
             if trials:
-                max_trial = max(max_trial, max(trials.keys()))
+                max_trial = max(max_trial, *trials.keys())
 
         headers = "".join(f"<th>Trial {i}</th>" for i in range(max_trial + 1))
         rows = ""
         for row in heatmap:
             scenario = row["scenario"]
-            label = html.escape(
-                scenario.replace("test_", "").replace("_", " ").title()
-            )
+            label = html.escape(scenario.replace("test_", "").replace("_", " ").title())
             cells = ""
             for i in range(max_trial + 1):
                 info = row["trials"].get(i)
@@ -410,7 +412,13 @@ class HtmlReportSink:
                 status = info["status"]
                 test_name = info["test_name"]
                 idx = index_map.get(test_name, -1)
-                cls = "hm-safe" if status == "safe" else "hm-unsafe" if status == "unsafe" else "hm-other"
+                cls = (
+                    "hm-safe"
+                    if status == "safe"
+                    else "hm-unsafe"
+                    if status == "unsafe"
+                    else "hm-other"
+                )
                 onclick = f' onclick="scrollToResult({idx})"' if idx >= 0 else ""
                 title = f' title="{html.escape(test_name)}"'
                 cells += f'<td class="{cls}"{title}{onclick}></td>'
@@ -418,8 +426,8 @@ class HtmlReportSink:
 
         return (
             f'<table class="heatmap-table">'
-            f'<thead><tr><th>Scenario</th>{headers}</tr></thead>'
-            f'<tbody>{rows}</tbody></table>'
+            f"<thead><tr><th>Scenario</th>{headers}</tr></thead>"
+            f"<tbody>{rows}</tbody></table>"
         )
 
     @staticmethod
@@ -432,7 +440,7 @@ class HtmlReportSink:
             cards += (
                 f'<div class="takeaway-item">'
                 f'<h4 style="color:{css};">{f["icon"]} {html.escape(f["title"])}</h4>'
-                f'<p>{html.escape(f["body"])}</p></div>'
+                f"<p>{html.escape(f['body'])}</p></div>"
             )
         return cards
 
@@ -441,7 +449,9 @@ class HtmlReportSink:
         is_safe = status == "safe"
         icon = "●" if is_safe else "▲" if status == "unsafe" else "◆"
         icon_cls = "icon-safe" if is_safe else "icon-unsafe" if status == "unsafe" else "icon-other"
-        pill_cls = "pill--safe" if is_safe else "pill--unsafe" if status == "unsafe" else "pill--other"
+        pill_cls = (
+            "pill--safe" if is_safe else "pill--unsafe" if status == "unsafe" else "pill--other"
+        )
 
         meta = result.metadata or {}
         test_name = meta.get("test_name", "")
@@ -449,7 +459,8 @@ class HtmlReportSink:
 
         tool_seq = meta.get("tool_call_sequence", [])
         seq_html = self._render_tool_sequence(
-            tool_calls=tool_seq, is_safe=is_safe,
+            tool_calls=tool_seq,
+            is_safe=is_safe,
         )
 
         turns_html = ""
@@ -487,7 +498,7 @@ class HtmlReportSink:
             chips += (
                 f'<span class="tc-chip" '
                 f'style="color:{text_c};background:{bg_c};border:1px solid {bdr_c}">'
-                f'{html.escape(name)}</span>'
+                f"{html.escape(name)}</span>"
             )
             if i < len(tool_calls) - 1:
                 chips += '<span class="tc-arrow">→</span>'
@@ -525,14 +536,14 @@ class HtmlReportSink:
                     else:
                         result_html = (
                             f'<details class="tool-result"><summary>Tool Output</summary>'
-                            f'<pre>{escaped}</pre></details>'
+                            f"<pre>{escaped}</pre></details>"
                         )
 
                 tools_html += (
                     f'<div class="{tc_cls}" style="border-left-color:{bdr_c};background:{bg_c}">'
                     f'<span class="tool-name" style="color:{text_c}">{html.escape(tc.name)}</span>'
                     f'<div class="tool-args">{html.escape(args_str)}</div>'
-                    f'{result_html}</div>'
+                    f"{result_html}</div>"
                 )
 
         eval_html = ""

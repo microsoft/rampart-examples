@@ -41,7 +41,9 @@ def main() -> None:
         help="Create a template config file at ~/.config/auth_proxy/config.json",
     )
     init_parser.add_argument(
-        "--config", type=Path, default=None,
+        "--config",
+        type=Path,
+        default=None,
         help=f"Config path (default: {DEFAULT_CONFIG_PATH})",
     )
 
@@ -50,20 +52,22 @@ def main() -> None:
     serve_parser.add_argument("--host", default=_DEFAULT_HOST)
     serve_parser.add_argument("--port", type=int, default=_DEFAULT_PORT)
     serve_parser.add_argument(
-        "--config", type=Path, default=None,
+        "--config",
+        type=Path,
+        default=None,
         help=f"Config file path (default: {DEFAULT_CONFIG_PATH})",
     )
     serve_parser.add_argument(
-        "--log-bodies", action="store_true",
+        "--log-bodies",
+        action="store_true",
         help="Capture request/response bodies in the request log",
     )
     serve_parser.add_argument(
-        "--request-log", default=None,
+        "--request-log",
+        default=None,
         help="Path for JSONL request log (enables logging)",
     )
-    serve_parser.add_argument(
-        "-v", "--verbose", action="store_true", help="DEBUG-level logging"
-    )
+    serve_parser.add_argument("-v", "--verbose", action="store_true", help="DEBUG-level logging")
 
     args = parser.parse_args()
 
@@ -83,9 +87,7 @@ def main() -> None:
     )
 
     if args.command == "init-config":
-        path = init_config(args.config)
-        print(f"Config file: {path}")
-        print("Edit it with your API keys, then run: auth-proxy serve")
+        init_config(args.config)
         return
 
     # serve

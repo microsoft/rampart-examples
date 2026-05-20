@@ -12,21 +12,24 @@ from __future__ import annotations
 import inspect
 import os
 from dataclasses import dataclass
-from typing import Any, Awaitable, Callable, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
+
+if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable
 
 try:
-    from azure.identity.aio import get_bearer_token_provider as _get_bearer_token_provider
+    from azure.identity.aio import get_bearer_token_provider as _imported_token_provider
+
+    _get_bearer_token_provider: Any = _imported_token_provider
 except ImportError:  # azure-identity is an optional dependency
-    _get_bearer_token_provider = None  # type: ignore[assignment]
+    _get_bearer_token_provider = None
 
 
 @runtime_checkable
 class AuthInjector(Protocol):
     """Protocol for sync auth injection."""
 
-    def __call__(
-        self, headers: dict[str, str], method: str, url: str
-    ) -> dict[str, str]: ...
+    def __call__(self, headers: dict[str, str], method: str, url: str) -> dict[str, str]: ...
 
 
 @runtime_checkable
@@ -45,9 +48,7 @@ class BearerTokenAuth:
     token: str
     header: str = "Authorization"
 
-    def __call__(
-        self, headers: dict[str, str], method: str, url: str
-    ) -> dict[str, str]:
+    def __call__(self, headers: dict[str, str], method: str, url: str) -> dict[str, str]:
         headers[self.header] = f"Bearer {self.token}"
         return headers
 
@@ -59,9 +60,7 @@ class ApiKeyHeaderAuth:
     key: str
     header: str = "x-api-key"
 
-    def __call__(
-        self, headers: dict[str, str], method: str, url: str
-    ) -> dict[str, str]:
+    def __call__(self, headers: dict[str, str], method: str, url: str) -> dict[str, str]:
         headers[self.header] = self.key
         return headers
 
@@ -72,9 +71,7 @@ class CompositeAuth:
 
     injectors: tuple[AuthInjector, ...]
 
-    def __call__(
-        self, headers: dict[str, str], method: str, url: str
-    ) -> dict[str, str]:
+    def __call__(self, headers: dict[str, str], method: str, url: str) -> dict[str, str]:
         for injector in self.injectors:
             headers = injector(headers, method, url)
         return headers
@@ -87,9 +84,7 @@ class StaticHeaderAuth:
     header: str
     value: str
 
-    def __call__(
-        self, headers: dict[str, str], method: str, url: str
-    ) -> dict[str, str]:
+    def __call__(self, headers: dict[str, str], method: str, url: str) -> dict[str, str]:
         headers[self.header] = self.value
         return headers
 
@@ -114,14 +109,11 @@ class EnvVarAuth:
         self.header = header
         self.prefix = prefix
 
-    def __call__(
-        self, headers: dict[str, str], method: str, url: str
-    ) -> dict[str, str]:
+    def __call__(self, headers: dict[str, str], method: str, url: str) -> dict[str, str]:
         value = os.environ.get(self.env_var)
         if not value:
-            raise RuntimeError(
-                f"Auth env var {self.env_var!r} is not set or empty"
-            )
+            msg = f"Auth env var {self.env_var!r} is not set or empty"
+            raise RuntimeError(msg)
         headers[self.header] = f"{self.prefix} {value}" if self.prefix else value
         return headers
 
@@ -145,18 +137,18 @@ class AzureTokenAuth:
             self._token_provider = token_provider
         elif credential is not None:
             if _get_bearer_token_provider is None:
-                raise ImportError(
+                msg = (
                     "azure-identity is required for AzureTokenAuth. "
                     "Install with: pip install azure-identity azure-core"
                 )
+                raise ImportError(msg)
             self._token_provider = _get_bearer_token_provider(credential, scope)
         else:
-            raise ValueError("Provide either 'credential' or 'token_provider'")
+            msg = "Provide either 'credential' or 'token_provider'"
+            raise ValueError(msg)
         self._header = header
 
-    async def __call__(
-        self, headers: dict[str, str], method: str, url: str
-    ) -> dict[str, str]:
+    async def __call__(self, headers: dict[str, str], method: str, url: str) -> dict[str, str]:
         token = await self._token_provider()
         headers[self._header] = f"Bearer {token}"
         return headers
@@ -168,9 +160,7 @@ class AsyncCompositeAuth:
     def __init__(self, *, injectors: tuple[Any, ...]) -> None:
         self._injectors = injectors
 
-    async def __call__(
-        self, headers: dict[str, str], method: str, url: str
-    ) -> dict[str, str]:
+    async def __call__(self, headers: dict[str, str], method: str, url: str) -> dict[str, str]:
         for injector in self._injectors:
             result = injector(headers, method, url)
             if inspect.isawaitable(result):

@@ -32,8 +32,9 @@ from __future__ import annotations
 import asyncio
 import logging
 import uuid
-from typing import Any
+from typing import Any, Self
 
+from openclaw.sandbox import SandboxClient
 from rampart.core.errors import InfrastructureError
 from rampart.core.manifest import AppManifest, ToolDeclaration
 from rampart.core.types import (
@@ -42,8 +43,6 @@ from rampart.core.types import (
     Response,
     ToolCall,
 )
-
-from openclaw.sandbox import SandboxClient
 
 logger = logging.getLogger(__name__)
 
@@ -143,11 +142,13 @@ def _extract_tool_calls_from_session_log(
             result_entry = results_by_id.get(call_id)
             result_text = _extract_result_text(result_entry) if result_entry else None
             args = block.get("arguments", {})
-            calls.append(ToolCall(
-                name=name,
-                arguments=args if isinstance(args, dict) else {},
-                result=result_text,
-            ))
+            calls.append(
+                ToolCall(
+                    name=name,
+                    arguments=args if isinstance(args, dict) else {},
+                    result=result_text,
+                )
+            )
 
     return calls
 
@@ -215,7 +216,8 @@ class OpenClawSession:
             InfrastructureError: On communication or parsing failures.
         """
         if not request.prompt:
-            raise InfrastructureError("OpenClaw requires a text prompt.")
+            msg = "OpenClaw requires a text prompt."
+            raise InfrastructureError(msg)
 
         raw = await self._client.send_async(
             prompt=request.prompt,
@@ -234,7 +236,9 @@ class OpenClawSession:
         tool_calls = await self._read_new_tool_calls_async()
 
         response_metadata = self._build_response_metadata(
-            raw=raw, agent_meta=agent_meta, meta=meta,
+            raw=raw,
+            agent_meta=agent_meta,
+            meta=meta,
             tool_calls=tool_calls,
         )
         llm_failure = _detect_llm_failure(text=text)
@@ -265,9 +269,8 @@ class OpenClawSession:
         status = raw.get("status", "")
         if status != "ok":
             summary = raw.get("summary", "unknown error")
-            raise InfrastructureError(
-                f"OpenClaw agent returned status '{status}': {summary}"
-            )
+            msg = f"OpenClaw agent returned status '{status}': {summary}"
+            raise InfrastructureError(msg)
 
     async def _read_new_tool_calls_async(self) -> list[ToolCall]:
         """Read new tool calls from the session JSONL log.
@@ -316,17 +319,15 @@ class OpenClawSession:
             **self._sandbox_metadata,
         }
 
-    async def __aenter__(self) -> OpenClawSession:
+    async def __aenter__(self) -> Self:
         """Enter the session — wait for the gateway and collect sandbox metadata."""
         for _ in range(self._HEALTH_POLL_ATTEMPTS):
             if await self._client.health_check_async():
                 break
             await asyncio.sleep(self._HEALTH_POLL_INTERVAL)
         else:
-            raise InfrastructureError(
-                "OpenClaw gateway is not reachable inside the sandbox. "
-                "Is the sandbox running?"
-            )
+            msg = "OpenClaw gateway is not reachable inside the sandbox. Is the sandbox running?"
+            raise InfrastructureError(msg)
 
         # Gather sandbox metadata once per session for report enrichment.
         self._sandbox_metadata = await self._collect_sandbox_metadata_async()

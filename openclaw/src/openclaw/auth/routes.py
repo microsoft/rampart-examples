@@ -28,9 +28,11 @@ from openclaw.auth.injectors import (
 )
 
 try:
-    from azure.identity.aio import DefaultAzureCredential as _DefaultAzureCredential
+    from azure.identity.aio import DefaultAzureCredential as _ImportedAzureCredential
+
+    _DefaultAzureCredential: Any = _ImportedAzureCredential
 except ImportError:  # azure-identity is an optional dependency
-    _DefaultAzureCredential = None  # type: ignore[assignment,misc]
+    _DefaultAzureCredential = None
 
 logger = logging.getLogger("auth_proxy")
 
@@ -102,8 +104,7 @@ def _check_config_permissions(path: Path) -> None:
     mode = path.stat().st_mode
     if mode & (stat.S_IRGRP | stat.S_IROTH):
         logger.warning(
-            "Config file %s is readable by group/others (mode %o). "
-            "Run: chmod 600 %s",
+            "Config file %s is readable by group/others (mode %o). Run: chmod 600 %s",
             path,
             stat.S_IMODE(mode),
             path,
@@ -139,40 +140,42 @@ def _build_auth_for_provider(
 
     if auth_type == "azure_ad":
         if _DefaultAzureCredential is None:
-            raise ImportError(
+            msg = (
                 f"Provider '{name}' uses azure_ad auth but azure-identity "
                 "is not installed. Run: pip install azure-identity azure-core"
             )
-        scope = provider_cfg.get(
-            "scope", "https://cognitiveservices.azure.com/.default"
-        )
-        return AzureTokenAuth(
-            credential=_DefaultAzureCredential(), scope=scope
-        )
+            raise ImportError(msg)
+        scope = provider_cfg.get("scope", "https://cognitiveservices.azure.com/.default")
+        return AzureTokenAuth(credential=_DefaultAzureCredential(), scope=scope)
 
     if auth_type == "anthropic":
         api_key = provider_cfg.get("api_key", "")
         if not api_key:
-            raise ValueError(f"Provider '{name}': auth=anthropic requires api_key")
-        return CompositeAuth((
-            ApiKeyHeaderAuth(api_key, header="x-api-key"),
-            StaticHeaderAuth(
-                "anthropic-version",
-                provider_cfg.get("anthropic_version", "2023-06-01"),
-            ),
-        ))
+            msg = f"Provider '{name}': auth=anthropic requires api_key"
+            raise ValueError(msg)
+        return CompositeAuth(
+            (
+                ApiKeyHeaderAuth(api_key, header="x-api-key"),
+                StaticHeaderAuth(
+                    "anthropic-version",
+                    provider_cfg.get("anthropic_version", "2023-06-01"),
+                ),
+            )
+        )
 
     if auth_type == "api_key_header":
         api_key = provider_cfg.get("api_key", "")
         header = provider_cfg.get("header", "api-key")
         if not api_key:
-            raise ValueError(f"Provider '{name}': auth=api_key_header requires api_key")
+            msg = f"Provider '{name}': auth=api_key_header requires api_key"
+            raise ValueError(msg)
         return StaticHeaderAuth(header, api_key)
 
     # Default: bearer token
     api_key = provider_cfg.get("api_key", "")
     if not api_key:
-        raise ValueError(f"Provider '{name}': auth=bearer requires api_key")
+        msg = f"Provider '{name}': auth=bearer requires api_key"
+        raise ValueError(msg)
     return BearerTokenAuth(api_key)
 
 
@@ -190,7 +193,7 @@ def routes_from_config(config_path: Path | None = None) -> list[ProviderRoute]:
         with open(path) as f:
             config = json.load(f)
     except json.JSONDecodeError as exc:
-        logger.error("Invalid JSON in config file %s: %s", path, exc)
+        logger.exception("Invalid JSON in config file %s: %s", path, exc)
         return []
 
     if not isinstance(config, dict):
@@ -236,7 +239,9 @@ def routes_from_config(config_path: Path | None = None) -> list[ProviderRoute]:
             )
         )
         logger.info(
-            "  %s → %s (%s auth)", path_prefix, base_url,
+            "  %s → %s (%s auth)",
+            path_prefix,
+            base_url,
             provider_cfg.get("auth", "bearer"),
         )
 
@@ -249,30 +254,49 @@ def routes_from_env() -> list[ProviderRoute]:
     logger.info("Reading provider credentials from environment variables")
 
     if key := os.environ.get("OPENAI_API_KEY"):
-        routes.append(ProviderRoute(
-            name="openai", path_prefix="/openai",
-            target_base_url="https://api.openai.com",
-            auth=BearerTokenAuth(key)))
+        routes.append(
+            ProviderRoute(
+                name="openai",
+                path_prefix="/openai",
+                target_base_url="https://api.openai.com",
+                auth=BearerTokenAuth(key),
+            )
+        )
 
     if key := os.environ.get("ANTHROPIC_API_KEY"):
-        routes.append(ProviderRoute(
-            name="anthropic", path_prefix="/anthropic",
-            target_base_url="https://api.anthropic.com",
-            auth=CompositeAuth((
-                ApiKeyHeaderAuth(key, header="x-api-key"),
-                StaticHeaderAuth("anthropic-version", "2023-06-01")))))
+        routes.append(
+            ProviderRoute(
+                name="anthropic",
+                path_prefix="/anthropic",
+                target_base_url="https://api.anthropic.com",
+                auth=CompositeAuth(
+                    (
+                        ApiKeyHeaderAuth(key, header="x-api-key"),
+                        StaticHeaderAuth("anthropic-version", "2023-06-01"),
+                    )
+                ),
+            )
+        )
 
     if key := os.environ.get("GROQ_API_KEY"):
-        routes.append(ProviderRoute(
-            name="groq", path_prefix="/groq",
-            target_base_url="https://api.groq.com",
-            auth=BearerTokenAuth(key)))
+        routes.append(
+            ProviderRoute(
+                name="groq",
+                path_prefix="/groq",
+                target_base_url="https://api.groq.com",
+                auth=BearerTokenAuth(key),
+            )
+        )
 
     if key := os.environ.get("TOGETHER_API_KEY"):
-        routes.append(ProviderRoute(
-            name="together", path_prefix="/together",
-            target_base_url="https://api.together.xyz",
-            auth=BearerTokenAuth(key)))
+        routes.append(
+            ProviderRoute(
+                name="together",
+                path_prefix="/together",
+                target_base_url="https://api.together.xyz",
+                auth=BearerTokenAuth(key),
+            )
+        )
 
     if base := os.environ.get("AZURE_OPENAI_ENDPOINT"):
         if _DefaultAzureCredential is None:
@@ -282,10 +306,13 @@ def routes_from_env() -> list[ProviderRoute]:
                 "AZURE_OPENAI_SCOPE",
                 "https://cognitiveservices.azure.com/.default",
             )
-            routes.append(ProviderRoute(
-                name="azure-openai-aad", path_prefix="/azure",
-                target_base_url=base,
-                auth=AzureTokenAuth(
-                    credential=_DefaultAzureCredential(), scope=scope)))
+            routes.append(
+                ProviderRoute(
+                    name="azure-openai-aad",
+                    path_prefix="/azure",
+                    target_base_url=base,
+                    auth=AzureTokenAuth(credential=_DefaultAzureCredential(), scope=scope),
+                )
+            )
 
     return routes

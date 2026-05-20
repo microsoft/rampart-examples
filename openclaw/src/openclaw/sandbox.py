@@ -123,25 +123,23 @@ class SandboxClient:
                 proc.communicate(input=stdin_data),
                 timeout=timeout,
             )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             proc.kill()
             with contextlib.suppress(Exception):
                 await asyncio.wait_for(proc.wait(), timeout=2.0)
-            raise InfrastructureError(
-                f"Sandbox command timed out after {timeout}s."
-            )
+            msg = f"Sandbox command timed out after {timeout}s."
+            raise InfrastructureError(msg)
 
         if proc.returncode != 0:
             detail = stderr.decode("utf-8", errors="replace")[:1000]
-            raise InfrastructureError(
-                f"Sandbox exec failed (rc={proc.returncode}): {detail}"
-            )
+            msg = f"Sandbox exec failed (rc={proc.returncode}): {detail}"
+            raise InfrastructureError(msg)
 
         if len(stdout) > self.MAX_RESPONSE_BYTES:
-            raise InfrastructureError(
-                f"Sandbox output too large ({len(stdout)} bytes, "
-                f"limit {self.MAX_RESPONSE_BYTES})."
+            msg = (
+                f"Sandbox output too large ({len(stdout)} bytes, limit {self.MAX_RESPONSE_BYTES})."
             )
+            raise InfrastructureError(msg)
 
         return stdout, stderr
 
@@ -173,9 +171,8 @@ class SandboxClient:
                 response parsing errors.
         """
         if not self.SAFE_ID_PATTERN.match(session_id):
-            raise InfrastructureError(
-                f"Invalid session_id: must match {self.SAFE_ID_PATTERN.pattern}"
-            )
+            msg = f"Invalid session_id: must match {self.SAFE_ID_PATTERN.pattern}"
+            raise InfrastructureError(msg)
 
         bash_script = (
             'read -r -d "" PROMPT; '
@@ -191,19 +188,20 @@ class SandboxClient:
         )
 
         if not stdout.strip():
-            raise InfrastructureError("Sandbox returned empty response.")
+            msg = "Sandbox returned empty response."
+            raise InfrastructureError(msg)
 
         try:
             response = json.loads(stdout)
         except json.JSONDecodeError as exc:
             preview = stdout[:200].decode("utf-8", errors="replace")
-            logger.error("Unparseable response (first 200 bytes): %s", preview)
-            raise InfrastructureError(
-                f"Sandbox returned invalid JSON: {exc}"
-            ) from exc
+            logger.exception("Unparsable response (first 200 bytes): %s", preview)
+            msg = f"Sandbox returned invalid JSON: {exc}"
+            raise InfrastructureError(msg) from exc
 
         if not isinstance(response, dict):
-            raise InfrastructureError("Sandbox response is not a JSON object.")
+            msg = "Sandbox response is not a JSON object."
+            raise InfrastructureError(msg)
 
         return response
 
@@ -228,16 +226,11 @@ class SandboxClient:
             List of parsed JSON objects from the session log.
         """
         if not self.SAFE_ID_PATTERN.match(session_id):
-            raise InfrastructureError(
-                f"Invalid session_id: must match {self.SAFE_ID_PATTERN.pattern}"
-            )
+            msg = f"Invalid session_id: must match {self.SAFE_ID_PATTERN.pattern}"
+            raise InfrastructureError(msg)
 
         jsonl_path = f"{self.SESSION_JSONL_DIR}/{session_id}.jsonl"
-        cmd = (
-            f"tail -n +{after_line + 1} {jsonl_path}"
-            if after_line > 0
-            else f"cat {jsonl_path}"
-        )
+        cmd = f"tail -n +{after_line + 1} {jsonl_path}" if after_line > 0 else f"cat {jsonl_path}"
 
         try:
             stdout, _ = await self.exec_async(command=cmd, timeout=10)
@@ -266,7 +259,8 @@ class SandboxClient:
             InfrastructureError: If the file can't be read.
         """
         stdout, _ = await self.exec_async(
-            command=f"cat {shlex.quote(remote_path)}", timeout=10,
+            command=f"cat {shlex.quote(remote_path)}",
+            timeout=10,
         )
         return stdout
 
@@ -345,17 +339,23 @@ class SandboxClient:
         """
         workspace = "/home/agent/.openclaw/workspace"
         bootstrap_names = [
-            "AGENTS.md", "SOUL.md", "TOOLS.md", "IDENTITY.md",
-            "USER.md", "HEARTBEAT.md", "BOOTSTRAP.md",
+            "AGENTS.md",
+            "SOUL.md",
+            "TOOLS.md",
+            "IDENTITY.md",
+            "USER.md",
+            "HEARTBEAT.md",
+            "BOOTSTRAP.md",
         ]
         cmd = " ".join(
-            f'stat -c \'{{"{name}": %s}}\' {workspace}/{name} 2>/dev/null;'
+            f"stat -c '{{\"{name}\": %s}}' {workspace}/{name} 2>/dev/null;"
             for name in bootstrap_names
         )
         try:
             stdout, _ = await self.exec_async(command=cmd, timeout=10)
             return self._parse_bootstrap_stat_output(
-                stdout=stdout, bootstrap_names=bootstrap_names,
+                stdout=stdout,
+                bootstrap_names=bootstrap_names,
             )
         except InfrastructureError:
             return []
@@ -391,7 +391,9 @@ class SandboxClient:
         return files
 
     async def get_workspace_tree_async(
-        self, *, max_depth: int = 3,
+        self,
+        *,
+        max_depth: int = 3,
     ) -> list[str]:
         """Return a list of file paths in the agent's workspace.
 
@@ -426,21 +428,26 @@ class SandboxClient:
         """
         try:
             proc = await asyncio.create_subprocess_exec(
-                "docker", "sandbox", "network", "log", self._sandbox_name,
+                "docker",
+                "sandbox",
+                "network",
+                "log",
+                self._sandbox_name,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )
             try:
                 stdout, _ = await asyncio.wait_for(
-                    proc.communicate(), timeout=10,
+                    proc.communicate(),
+                    timeout=10,
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 proc.kill()
                 with contextlib.suppress(Exception):
                     await asyncio.wait_for(proc.wait(), timeout=2.0)
                 return "unknown"
             output = stdout.decode("utf-8", errors="replace").strip()
-            return output if output else "unknown"
+            return output or "unknown"
         except OSError:
             return "unknown"
 
@@ -451,12 +458,7 @@ class SandboxClient:
             Dict with ``os``, ``arch``, ``user``, ``home``, ``shell``
             keys.
         """
-        cmd = (
-            "echo \"$(uname -s) $(uname -m)\";"
-            "whoami;"
-            "echo $HOME;"
-            "echo $SHELL"
-        )
+        cmd = 'echo "$(uname -s) $(uname -m)";whoami;echo $HOME;echo $SHELL'
         try:
             stdout, _ = await self.exec_async(command=cmd, timeout=10)
             lines = stdout.decode("utf-8", errors="replace").splitlines()
@@ -470,5 +472,10 @@ class SandboxClient:
                 "shell": lines[3].strip() if len(lines) > 3 else "unknown",
             }
         except InfrastructureError:
-            return {"os": "unknown", "arch": "unknown", "user": "unknown",
-                    "home": "unknown", "shell": "unknown"}
+            return {
+                "os": "unknown",
+                "arch": "unknown",
+                "user": "unknown",
+                "home": "unknown",
+                "shell": "unknown",
+            }

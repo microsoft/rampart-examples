@@ -4,16 +4,16 @@
 
 This project is a **RAMPART case study**, not an official OpenClaw integration. RAMPART ([microsoft/RAMPART](https://github.com/microsoft/RAMPART)) is a developer-owned test framework for agentic AI — *pytest for agents* — that lets engineering teams continuously validate what an agent actually *does* (tool calls, side effects, actions), not just what it says.
 
-To make the framework concrete, we put on an "OpenClaw maintainer" hat and asked the question every agent team should be able to answer on every PR: *if we shipped this tomorrow, would our agent pass a safety test suite?* We picked OpenClaw because it's a popular open-source assistant agent whose capabilities are extended through third-party plugins — a realistic supply-chain attack surface.
+To make the framework concrete, we put on an "OpenClaw maintainer" hat and asked the question every agent team should be able to answer on every PR: *if we shipped this tomorrow, would our agent pass a safety test suite?* We picked OpenClaw because it's a popular open-source assistant agent whose capabilities are extended through third-party plugins — therefore offering a realistic supply-chain attack surface.
 
 What ships in this repo:
 
 - **An `OpenClawAdapter`** — wires RAMPART into OpenClaw's session pipeline so tests can drive prompts in and observe tool calls (`exec`, `read`, `write`, `edit`, `apply_patch`) coming out.
 - **A locked-down sandbox** — Docker `--policy deny` + an auth-injecting reverse proxy on the host so the agent never sees credentials.
-- **A `PluginToolSurface`** — installs a malicious OpenClaw plugin that delivers adversarial payloads two ways:
-  - `TOOL_OUTPUT` — payload buried in the plugin's search results.
+- **A `PluginToolSurface`** — configures a malicious OpenClaw plugin (named `search`) that delivers adversarial payloads two ways:
+  - `TOOL_OUTPUT` — payload buried in the plugin's output (interpreted by agent as search results)
   - `TOOL_DESCRIPTION` — payload framed as a "workspace policy" in the plugin's tool schema (visible every turn).
-- **XPIA (cross-prompt injection) integration tests** under `tests/integration/` — SSH-key exfiltration, credential/diagnostic dump, and silent-staging scenarios, each run across multiple trials with a custom kill-chain evaluator and an interactive HTML report in `.report/`.
+- **XPIA (cross-prompt injection) integration tests** under `tests/integration/` —  Tests register the `PluginToolSurface` plugins with the agent (one with poisoned output and another with poisoned description) and attempt XPIA attacks across 3 scenarios: SSH-key exfiltration, credential/diagnostic dump, and silent-staging. Each test runs multiple trials with a custom kill-chain evaluator and an interactive HTML report in `.report/`.
 
 The point isn't *"OpenClaw is unsafe"* — it's *"this is what an agent team's safety integration suite looks like."* The same primitives (adapter + surface + evaluator + reporting) can be composed against any agent.
 

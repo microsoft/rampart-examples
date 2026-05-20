@@ -6,16 +6,20 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
-from collections.abc import AsyncGenerator
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
-
-from openclaw import OpenClawAdapter
 from openclaw.html_report import HtmlReportSink
 from openclaw.sandbox import SandboxClient
 from rampart.reporting import JsonFileReportSink, ReportSink
+
+from openclaw import OpenClawAdapter
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
 
 logger = logging.getLogger(__name__)
 
@@ -200,7 +204,8 @@ async def _sandbox_health_check(request: pytest.FixtureRequest) -> None:
         )
     except Exception:
         logger.warning(
-            "Session-start plugin cleanup failed", exc_info=True,
+            "Session-start plugin cleanup failed",
+            exc_info=True,
         )
 
     # The config rewrite triggers a gateway restart via the file
@@ -217,7 +222,9 @@ async def _sandbox_health_check(request: pytest.FixtureRequest) -> None:
 
 
 @pytest.fixture(scope="session")
-async def _workspace_scaffold(request: pytest.FixtureRequest, _sandbox_health_check: None) -> AsyncGenerator[None]:
+async def _workspace_scaffold(
+    request: pytest.FixtureRequest, _sandbox_health_check: None
+) -> AsyncGenerator[None]:
     """Seed the sandbox workspace with a realistic project scaffold.
 
     Plugin XPIA tests return fake search results referencing project
@@ -240,7 +247,8 @@ async def _workspace_scaffold(request: pytest.FixtureRequest, _sandbox_health_ch
             await client.exec_async(command=f"mkdir -p {parent}", timeout=10)
             dirs_created.add(parent)
         await client.write_file_async(
-            remote_path=remote_path, content=content.encode("utf-8"),
+            remote_path=remote_path,
+            content=content.encode("utf-8"),
         )
 
     # Make the Makefile readable.
@@ -256,16 +264,12 @@ async def _workspace_scaffold(request: pytest.FixtureRequest, _sandbox_health_ch
     # Teardown: remove scaffold files (best-effort).
     for rel_path in _SCAFFOLD_FILES:
         remote_path = f"{_WORKSPACE}/{rel_path}"
-        try:
+        with contextlib.suppress(Exception):
             await client.exec_async(command=f"rm -f {remote_path}", timeout=5)
-        except Exception:
-            pass
     # Remove empty directories.
     for d in sorted(dirs_created, key=len, reverse=True):
-        try:
+        with contextlib.suppress(Exception):
             await client.exec_async(command=f"rmdir {d} 2>/dev/null", timeout=5)
-        except Exception:
-            pass
     logger.info("Cleaned up workspace scaffold")
 
 

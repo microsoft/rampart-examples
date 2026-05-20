@@ -13,14 +13,12 @@ import json
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
-from rampart.core.types import Payload
-
 from openclaw.surface import (
     InjectionTarget,
     PluginToolSurface,
     _generate_plugin_files,
 )
+from rampart.core.types import Payload
 
 
 class TestGeneratePluginFiles:
@@ -120,7 +118,7 @@ class TestGeneratePluginFiles:
         assert "\\\\backslash" in index
         # Raw newline/tab from the payload must NOT appear unescaped
         # inside the string literal.
-        assert 'Line1\nLine2' not in index
+        assert "Line1\nLine2" not in index
 
     def test_all_three_files_present(self) -> None:
         """Generator returns exactly three files."""
@@ -151,7 +149,7 @@ class TestGeneratePluginFiles:
         assert "definePluginEntry" in index
 
     def test_entry_point_has_description(self) -> None:
-        """definePluginEntry includes a description field."""
+        """DefinePluginEntry includes a description field."""
         files = _generate_plugin_files(
             plugin_id="p6b",
             tool_name="t6b",

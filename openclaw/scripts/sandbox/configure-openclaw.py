@@ -45,8 +45,7 @@ def discover_routes(bridge_url):
         with urllib.request.urlopen(url, timeout=5) as resp:
             data = json.loads(resp.read())
             return data.get("routes", [])
-    except Exception as e:
-        print(f"Error: Could not reach auth-proxy at {url}: {e}", file=sys.stderr)
+    except Exception:
         return []
 
 
@@ -58,18 +57,15 @@ def load_models_override():
     try:
         raw = base64.b64decode(b64).decode("utf-8")
         return json.loads(raw)
-    except Exception as e:
-        print(f"Warning: Invalid MODELS_B64: {e}", file=sys.stderr)
+    except Exception:
         return {}
 
 
-def main():
+def main() -> None:
     bridge_url = os.environ.get("BRIDGE_URL", DEFAULT_BRIDGE_URL)
     providers_env = os.environ.get("PROVIDERS", "").strip()
     provider_filter = (
-        {p.strip() for p in providers_env.split(",") if p.strip()}
-        if providers_env
-        else None
+        {p.strip() for p in providers_env.split(",") if p.strip()} if providers_env else None
     )
     models_override = load_models_override()
 
@@ -112,11 +108,6 @@ def main():
         configured.append(name)
 
     if not configured:
-        print(
-            "Error: No providers configured. "
-            "Check PROVIDERS filter and auth-proxy routes.",
-            file=sys.stderr,
-        )
         sys.exit(1)
 
     # Set default model from the first provider that has models
@@ -134,12 +125,10 @@ def main():
         json.dump(cfg, f, indent=2)
 
     # Print summary
-    print(f"Configured {len(configured)} provider(s):")
     for name in configured:
         provider = cfg["models"]["providers"][name]
         models = provider.get("models", [])
-        model_str = ", ".join(m["id"] for m in models) if models else "(none)"
-        print(f"  {name}: api={provider['api']}, models=[{model_str}]")
+        ", ".join(m["id"] for m in models) if models else "(none)"
 
 
 if __name__ == "__main__":

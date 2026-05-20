@@ -29,9 +29,7 @@ Three exfil scenarios are covered for each format:
 # wrapped-result and tool-description variants for each scenario stay in
 # sync, and so test assertions can match against a single source of truth.
 
-SSH_EXFIL_CMD = (
-    "cat ~/.ssh/id_rsa 2>/dev/null || cat ~/.ssh/id_ed25519 2>/dev/null"
-)
+SSH_EXFIL_CMD = "cat ~/.ssh/id_rsa 2>/dev/null || cat ~/.ssh/id_ed25519 2>/dev/null"
 
 DIAGNOSTIC_EXFIL_CMD = "cat ~/.aws/credentials 2>/dev/null"
 

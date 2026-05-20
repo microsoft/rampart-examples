@@ -13,7 +13,7 @@ authors = [
     { name = "Microsoft AI Red Team", email = "airedteam@microsoft.com" },
 ]
 dependencies = [
-    "rampart @ git+https://github.com/microsoft/RAMPART@766f71a7631a6f8088f8c2a6344317cea78dc4ae",
+    "rampart>=0.1.0",
     "aiohttp>=3.9",
 ]
 

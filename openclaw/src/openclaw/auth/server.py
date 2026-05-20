@@ -10,13 +10,14 @@ import inspect
 import json
 import logging
 import time
-from typing import Any, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any, Protocol, Self, cast, runtime_checkable
 
 import aiohttp
 import aiohttp.log
 from aiohttp import web
 
-from openclaw.auth.routes import ProviderRoute
+if TYPE_CHECKING:
+    from openclaw.auth.routes import ProviderRoute
 
 logger = logging.getLogger("auth_proxy")
 
@@ -87,7 +88,7 @@ class JsonlRequestLogger:
             loop = asyncio.get_running_loop()
             await loop.run_in_executor(None, self._file.close)
 
-    async def __aenter__(self) -> JsonlRequestLogger:
+    async def __aenter__(self) -> Self:
         return self
 
     async def __aexit__(
@@ -121,7 +122,7 @@ class AuthProxy:
     def _match_route(self, path: str) -> tuple[ProviderRoute, str] | None:
         for route in self._routes:
             if path == route.path_prefix or path.startswith(route.path_prefix + "/"):
-                remainder = path[len(route.path_prefix):]
+                remainder = path[len(route.path_prefix) :]
                 return route, remainder
         return None
 
@@ -150,23 +151,19 @@ class AuthProxy:
 
         # Build forwarded headers — strip hop-by-hop.
         fwd_headers: dict[str, str] = {
-            k: v
-            for k, v in request.headers.items()
-            if k.lower() not in _HOP_BY_HOP
+            k: v for k, v in request.headers.items() if k.lower() not in _HOP_BY_HOP
         }
 
         # Inject auth.
         try:
             result = route.auth(fwd_headers, request.method, target_url)
             if inspect.isawaitable(result):
-                fwd_headers = await result
+                fwd_headers = cast("dict[str, str]", await result)
             else:
                 fwd_headers = result
         except Exception as exc:
-            logger.error("Auth injection failed for %s: %s", route.name, exc)
-            return web.json_response(
-                {"error": "proxy_error"}, status=502
-            )
+            logger.exception("Auth injection failed for %s: %s", route.name, exc)
+            return web.json_response({"error": "proxy_error"}, status=502)
 
         fwd_headers.update(route.extra_headers)
 
@@ -185,9 +182,7 @@ class AuthProxy:
                 duration_ms = (time.monotonic() - t0) * 1000
 
                 resp_headers = {
-                    k: v
-                    for k, v in upstream_resp.headers.items()
-                    if k.lower() not in _HOP_BY_HOP
+                    k: v for k, v in upstream_resp.headers.items() if k.lower() not in _HOP_BY_HOP
                 }
 
                 logger.info(
@@ -199,9 +194,7 @@ class AuthProxy:
                     int(duration_ms),
                 )
 
-                response = web.StreamResponse(
-                    status=upstream_resp.status, headers=resp_headers
-                )
+                response = web.StreamResponse(status=upstream_resp.status, headers=resp_headers)
                 await response.prepare(request)
 
                 collected_body = bytearray() if self._log_bodies else None
@@ -222,9 +215,7 @@ class AuthProxy:
                             duration_ms=duration_ms,
                             request_body=body if self._log_bodies else None,
                             response_body=(
-                                bytes(collected_body)
-                                if collected_body is not None
-                                else None
+                                bytes(collected_body) if collected_body is not None else None
                             ),
                         )
                     except Exception:
@@ -234,16 +225,14 @@ class AuthProxy:
 
         except aiohttp.ClientError as exc:
             duration_ms = (time.monotonic() - t0) * 1000
-            logger.error(
+            logger.exception(
                 "%s %s -> ERROR %s [%dms]",
                 request.method,
                 route.name,
                 exc,
                 int(duration_ms),
             )
-            return web.json_response(
-                {"error": "upstream_error"}, status=502
-            )
+            return web.json_response({"error": "upstream_error"}, status=502)
 
     async def _health_async(self, _request: web.Request) -> web.Response:
         routes = [
@@ -255,8 +244,9 @@ class AuthProxy:
     async def _on_shutdown_async(self, _app: web.Application) -> None:
         if self._session and not self._session.closed:
             await self._session.close()
-        if self._request_logger and hasattr(self._request_logger, "close_async"):
-            await self._request_logger.close_async()  # type: ignore[union-attr]
+        close_async = getattr(self._request_logger, "close_async", None)
+        if close_async is not None:
+            await close_async()
 
     def run(self) -> None:
         app = web.Application()
