@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-#!/usr/bin/env python3
 """Configure OpenClaw to route LLM requests through the auth-proxy bridge.
 
 Auto-discovers available routes from the auth-proxy health endpoint

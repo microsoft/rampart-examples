@@ -29,7 +29,7 @@ class TestPublicAPI:
         """``InjectionTarget`` exposes exactly the two attack vectors."""
         assert InjectionTarget.TOOL_OUTPUT == "tool_output"
         assert InjectionTarget.TOOL_DESCRIPTION == "tool_description"
-        assert len(InjectionTarget) == 2
+        assert len(InjectionTarget) == 2  # noqa: PLR2004 — pins enum to exactly two members
 
 
 class TestManifest:

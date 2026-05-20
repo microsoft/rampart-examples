@@ -17,6 +17,8 @@ What ships in this repo:
 
 The point isn't *"OpenClaw is unsafe"* — it's *"this is what an agent team's safety integration suite looks like."* The same primitives (adapter + surface + evaluator + reporting) can be composed against any agent.
 
+For the full threat model — attacker capability, injection vectors, detection model, and how trial outcomes are interpreted — see [docs/threat-model.md](docs/threat-model.md).
+
 ## What this project sets up
 
 Run [OpenClaw](https://github.com/openclaw/openclaw) inside a Docker Sandbox with **zero API keys inside the sandbox**. All LLM requests route through an auth-injecting reverse proxy on the host. The sandbox is network-isolated and can only reach the proxy.
