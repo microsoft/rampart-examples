@@ -1,0 +1,39 @@
+graph TB
+    classDef cloud fill:#d4edda,stroke:#28a745,stroke-width:2px,color:#155724
+    classDef host fill:#e8f4fd,stroke:#0d6efd,stroke-width:2px,color:#084298
+    classDef docker fill:#fff3cd,stroke:#ffc107,stroke-width:2px,color:#664d03
+    classDef sandbox fill:#f8d7da,stroke:#dc3545,stroke-width:2px,color:#842029
+    classDef proxy fill:#e2d9f3,stroke:#6f42c1,stroke-width:2px,color:#432874
+    classDef bridge fill:#d1ecf1,stroke:#0dcaf0,stroke-width:2px,color:#055160
+    classDef config fill:#fff,stroke:#6c757d,stroke-width:1px,stroke-dasharray:5 5,color:#495057
+
+    subgraph CLOUD["Cloud"]
+        AZ["Azure OpenAI / api.openai.com"]
+    end
+
+    subgraph HOST["Host Machine"]
+        CONFIG["config.json — API keys / Azure AD tokens"]
+        AP["Auth Proxy — localhost:12435 — Injects credentials per route"]
+        CONFIG -."reads secrets".-> AP
+
+        subgraph DOCKER["Docker Engine"]
+            DPROXY["Docker HTTP Proxy — host.docker.internal:3128"]
+
+            subgraph SB["Sandbox — NETWORK DENY ALL"]
+                OC["OpenClaw — TUI + Gateway :18789"]
+                BR["Bridge — 127.0.0.1:54321"]
+                OC -->|"HTTP requests — no credentials"| BR
+            end
+        end
+    end
+
+    BR -->|"only localhost:12435 allowed through firewall"| DPROXY
+    DPROXY --> AP
+    AP -->|"+ Authorization: Bearer ..."| AZ
+
+    AZ:::cloud
+    CONFIG:::config
+    AP:::proxy
+    DPROXY:::bridge
+    OC:::sandbox
+    BR:::bridge

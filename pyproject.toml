@@ -18,6 +18,11 @@ addopts = "-ra -n auto -p no:rampart"
 line-length = 100
 target-version = "py311"
 
+[tool.codespell]
+# "te" is a real HTTP hop-by-hop header name (RFC 7230) referenced in
+# openclaw/src/openclaw/auth/server.py.
+ignore-words-list = "te"
+
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
@@ -39,6 +44,45 @@ ignore = [
     "SLF001",
 ]
 "**/conftest.py" = ["INP001"]
+# The OpenClaw example is sandbox glue + HTML report templates. Several
+# strict library-grade rules add no value here (docstring density on
+# trivial accessors, magic constants in demo asserts, HTML template
+# line length, defensive blind-except in cleanup paths, etc.).
+"openclaw/**/*.py" = [
+    "ANN001",
+    "ANN201",
+    "ANN401",
+    "ARG002",
+    "ARG004",
+    "ASYNC109",
+    "B904",
+    "BLE001",
+    "C901",
+    "D",
+    "E402",
+    "E501",
+    "EM101",
+    "EM102",
+    "EXE005",
+    "INP001",
+    "N806",
+    "PLR0913",
+    "PLR2004",
+    "PLW2901",
+    "PTH103",
+    "PTH111",
+    "PTH120",
+    "PTH123",
+    "PYI034",
+    "PYI036",
+    "RUF001",
+    "RUF002",
+    "S310",
+    "SIM115",
+    "TRY003",
+    "TRY300",
+    "TRY401",
+]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
@@ -46,20 +90,22 @@ convention = "google"
 [tool.ty.environment]
 python-version = "3.11"
 python = ".venv"
-extra-paths = ["helpdesk-bot"]
+extra-paths = ["helpdesk-bot", "openclaw/src"]
 
 [tool.ty.src]
-include = ["helpdesk-bot", "tests"]
+include = ["helpdesk-bot", "openclaw", "tests"]
 
 [tool.uv.workspace]
-members = ["helpdesk-bot"]
+members = ["helpdesk-bot", "openclaw"]
 
 [tool.uv.sources]
 helpdesk-bot = { workspace = true }
+rampart-openclaw = { workspace = true }
 
 [dependency-groups]
 dev = [
     "helpdesk-bot",
+    "rampart-openclaw",
     "pytest>=8.0",
     "pytest-asyncio>=0.23",
     "pytest-xdist>=3.6",
