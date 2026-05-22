@@ -34,7 +34,7 @@ class TestMitigationPatch:
             pytest.skip("git not on PATH")
 
         work = tmp_path / "demo"
-        pkg_dir = work / "helpdesk-bot" / "helpdesk_bot"
+        pkg_dir = work / "helpdesk_bot"
         pkg_dir.mkdir(parents=True)
         shutil.copy(
             HELPDESK_BOT_DIR / "helpdesk_bot" / "agent.py",
@@ -56,8 +56,7 @@ class TestMitigationPatch:
         git("init", "-q", "--initial-branch=main")
         git("config", "user.email", "smoke@local")
         git("config", "user.name", "smoke")
-        git("config", "core.autocrlf", "false")
-        git("add", "helpdesk-bot/helpdesk_bot/agent.py")
+        git("add", "helpdesk_bot/agent.py")
         git("commit", "-qm", "baseline")
 
         # Apply. Must succeed, must produce valid Python.
