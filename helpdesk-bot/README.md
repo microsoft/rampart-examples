@@ -148,7 +148,7 @@ vary run to run; that's exactly why we use `trial(n=20)`.
 ## 🛠️ Step 2: Apply the fix
 
 ```bash
-git apply mitigation.patch
+git apply mitigation.patch --directory=helpdesk-bot
 ```
 
 The patch makes two changes to
