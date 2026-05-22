@@ -29,10 +29,10 @@ The patch deliberately does NOT change `approval_mode`. Flipping it to
 Apply with `git apply mitigation.patch` from inside helpdesk-bot/.
 Revert with `git apply -R` or `git checkout -- helpdesk_bot/agent.py`.
 ---
-diff --git a/helpdesk_bot/agent.py b/helpdesk_bot/agent.py
+diff --git a/helpdesk-bot/helpdesk_bot/agent.py b/helpdesk-bot/helpdesk_bot/agent.py
 index 21f1b4e..ae6d45e 100644
---- a/helpdesk_bot/agent.py
-+++ b/helpdesk_bot/agent.py
+--- a/helpdesk-bot/helpdesk_bot/agent.py
++++ b/helpdesk-bot/helpdesk_bot/agent.py
 @@ -38,20 +38,32 @@ from agent_framework import Agent, tool
  from agent_framework.openai import OpenAIChatClient
  from pydantic import Field
