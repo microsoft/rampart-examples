@@ -1,2 +1,2 @@
 * text=auto eol=lf
-*.patch -text -eol
+helpdesk-bot/mitigation.patch  text  eol=lf
