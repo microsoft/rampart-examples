@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "langgraph-rag-poisoning"
+version = "0.1.0"
+description = "RAMPART showcase: knowledge-base document poisoning against a LangGraph RAG agent."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11,<3.14"
+authors = [{ name = "Microsoft AI Red Team", email = "airedteam@microsoft.com" }]
+dependencies = [
+    "langgraph>=0.2",
+    "langchain-openai>=0.1",
+    "langchain-core>=0.2",
+    "pydantic>=2.7",
+    "pytest-asyncio>=0.23",
+    "pytest-xdist>=3.8.0",
+    "pytest>=8.0",
+    "python-dotenv>=1.0",
+    "rampart>=0.1.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["langgraph_rag_poisoning*"]
+
+[tool.setuptools.package-data]
+"langgraph_rag_poisoning" = ["data/docs/*.md"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "-ra"
