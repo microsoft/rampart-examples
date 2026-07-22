@@ -26,8 +26,8 @@ The patch deliberately does NOT change `approval_mode`. Flipping it to
 *invocation*), not poisoned tool *arguments*. See the demo README's
 "What the patch deliberately does not change" section.
 
-Apply with `git apply mitigation.patch` from inside helpdesk-bot/.
-Revert with `git apply -R` or `git checkout -- helpdesk_bot/agent.py`.
+Apply with `git apply mitigation.patch --directory=helpdesk-bot` from inside helpdesk-bot/.
+Revert with `git apply -R mitigation.patch --directory=helpdesk-bot` or `git checkout -- helpdesk_bot/agent.py`.
 ---
 diff --git a/helpdesk_bot/agent.py b/helpdesk_bot/agent.py
 index 21f1b4e..ae6d45e 100644
