@@ -34,7 +34,7 @@ class TestMitigationPatch:
             pytest.skip("git not on PATH")
 
         work = tmp_path / "demo"
-        pkg_dir = work / "helpdesk_bot"
+        pkg_dir = work / "helpdesk-bot" / "helpdesk_bot"
         pkg_dir.mkdir(parents=True)
         shutil.copy(
             HELPDESK_BOT_DIR / "helpdesk_bot" / "agent.py",
@@ -56,17 +56,17 @@ class TestMitigationPatch:
         git("init", "-q", "--initial-branch=main")
         git("config", "user.email", "smoke@local")
         git("config", "user.name", "smoke")
-        git("add", "helpdesk_bot/agent.py")
+        git("add", "helpdesk-bot/helpdesk_bot/agent.py")
         git("commit", "-qm", "baseline")
 
         # Apply. Must succeed, must produce valid Python.
-        git("apply", "mitigation.patch")
+        git("apply", "mitigation.patch", "--directory=helpdesk-bot")
         ast.parse((pkg_dir / "agent.py").read_text(encoding="utf-8"))
 
         # Reverse. After reverse the file must be byte-identical to the
-        # original baseline (so `git checkout -- helpdesk_bot/agent.py`
+        # original baseline (so `git checkout -- helpdesk-bot/helpdesk_bot/agent.py`
         # in the README is equivalent to `git apply -R`).
-        git("apply", "-R", "mitigation.patch")
+        git("apply", "-R", "mitigation.patch", "--directory=helpdesk-bot")
         original_bytes = (HELPDESK_BOT_DIR / "helpdesk_bot" / "agent.py").read_bytes()
         post_reverse_bytes = (pkg_dir / "agent.py").read_bytes()
         assert post_reverse_bytes == original_bytes

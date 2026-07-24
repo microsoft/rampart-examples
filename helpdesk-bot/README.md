@@ -148,7 +148,7 @@ vary run to run; that's exactly why we use `trial(n=20)`.
 ## 🛠️ Step 2: Apply the fix
 
 ```bash
-git apply mitigation.patch
+git apply mitigation.patch --directory=helpdesk-bot
 ```
 
 The patch makes two changes to
@@ -270,7 +270,7 @@ To revert and play with the diff:
 ```bash
 git checkout -- helpdesk_bot/agent.py
 # or, equivalently:
-git apply -R mitigation.patch
+git apply -R mitigation.patch --directory=helpdesk-bot
 ```
 
 JSON reports for every run are written to `.report/` for offline
