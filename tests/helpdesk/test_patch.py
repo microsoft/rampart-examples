@@ -54,6 +54,7 @@ class TestMitigationPatch:
             )
 
         git("init", "-q", "--initial-branch=main")
+        git("config", "core.autocrlf", "false")
         git("config", "user.email", "smoke@local")
         git("config", "user.name", "smoke")
         git("add", "helpdesk-bot/helpdesk_bot/agent.py")
